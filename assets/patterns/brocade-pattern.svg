@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120">
+  <defs>
+    <linearGradient id="brocadeGold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#F5D061" stop-opacity="0.18"/>
+      <stop offset="100%" stop-color="#9B7811" stop-opacity="0.08"/>
+    </linearGradient>
+  </defs>
+  <g fill="none" stroke="url(#brocadeGold)" stroke-width="0.9">
+    <!-- Royal Paisley and Lotus motif -->
+    <path d="M60,20 C75,5 95,25 80,45 C70,55 60,60 60,75 C60,60 50,55 40,45 C25,25 45,5 60,20 Z" fill="url(#brocadeGold)" fill-opacity="0.05"/>
+    <path d="M60,100 C75,115 95,95 80,75 C70,65 60,60 60,45 C60,60 50,65 40,75 C25,95 45,115 60,100 Z" fill="url(#brocadeGold)" fill-opacity="0.05"/>
+    <circle cx="60" cy="60" r="14"/>
+    <circle cx="60" cy="60" r="5" fill="url(#brocadeGold)" fill-opacity="0.15"/>
+    <circle cx="0" cy="0" r="16"/>
+    <circle cx="120" cy="0" r="16"/>
+    <circle cx="0" cy="120" r="16"/>
+    <circle cx="120" cy="120" r="16"/>
+  </g>
+</svg>

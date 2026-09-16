@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160" viewBox="0 0 160 160">
+  <defs>
+    <linearGradient id="crestGold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFE082"/>
+      <stop offset="50%" stop-color="#D4AF37"/>
+      <stop offset="100%" stop-color="#8C6D1F"/>
+    </linearGradient>
+  </defs>
+  <g fill="none" stroke="url(#crestGold)" stroke-width="1.5">
+    <circle cx="80" cy="80" r="70"/>
+    <circle cx="80" cy="80" r="62" stroke-dasharray="3,3"/>
+    <circle cx="80" cy="80" r="48"/>
+    <circle cx="80" cy="80" r="32"/>
+    <!-- 8 Petal Lotus -->
+    <path d="M80,18 C86,34 94,44 110,50 C94,56 86,66 80,82 C74,66 66,56 50,50 C66,44 74,34 80,18 Z" fill="url(#crestGold)" fill-opacity="0.2"/>
+    <path d="M80,142 C86,126 94,116 110,110 C94,104 86,94 80,78 C74,94 66,104 50,110 C66,116 74,126 80,142 Z" fill="url(#crestGold)" fill-opacity="0.2"/>
+    <path d="M18,80 C34,74 44,66 50,50 C56,66 66,74 82,80 C66,86 56,94 50,110 C44,94 34,86 18,80 Z" fill="url(#crestGold)" fill-opacity="0.2"/>
+    <path d="M142,80 C126,74 116,66 110,50 C104,66 94,74 78,80 C94,86 104,94 110,110 C116,94 126,86 142,80 Z" fill="url(#crestGold)" fill-opacity="0.2"/>
+    <circle cx="80" cy="80" r="12" fill="url(#crestGold)"/>
+  </g>
+</svg>
