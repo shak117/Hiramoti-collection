@@ -1,0 +1,1046 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard & CMS — Hiramoti Collection Satara</title>
+  <link rel="icon" type="image/png" href="../assets/images/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Montserrat:wght@300;400;500;600;700&family=Rozha+One&family=Yatra+One&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/admin.css">
+</head>
+<body class="admin-body">
+
+  <!-- ============================================================ -->
+  <!-- 1. LOGIN SCREEN (Visible when unauthenticated)               -->
+  <!-- ============================================================ -->
+  <div id="login-view" class="admin-login-wrapper">
+    <div class="login-card">
+      <div class="login-header">
+        <div class="login-logo">
+          <img src="../assets/images/hiramoti_header_logo.png" alt="Hiramoti Collection Satara">
+        </div>
+        <div class="login-badge">Institutional Admin CMS</div>
+        <h2>Store Administration</h2>
+        <p>Sign in to manage products, stock, prices, reels, and showroom appointments.</p>
+      </div>
+
+      <div id="login-alert" class="admin-alert admin-alert-danger" style="display: none;"></div>
+
+      <form id="login-form" onsubmit="handleAdminLogin(event)">
+        <div class="form-group">
+          <label for="login-username">Admin Email / Username</label>
+          <div class="input-with-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <input type="text" id="login-username" class="form-control" placeholder="admin@hiramoti.com" required autocomplete="username">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="login-password">Password</label>
+          <div class="input-with-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            <input type="password" id="login-password" class="form-control" placeholder="••••••••••••" required autocomplete="current-password">
+            <button type="button" class="btn-toggle-pwd" onclick="togglePasswordVisibility('login-password')" aria-label="Toggle password visibility">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="form-row-remember">
+          <label class="checkbox-label">
+            <input type="checkbox" id="remember-me" checked>
+            <span>Stay signed in on this device</span>
+          </label>
+        </div>
+
+        <button type="submit" id="btn-login-submit" class="btn btn-gold btn-block">
+          <span>Secure Sign In</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+        </button>
+      </form>
+
+      <div class="login-footer">
+        <p>&copy; 1987 – 2026 Hiramoti Collection, Satara. Protected Admin Console.</p>
+        <a href="../index.html" class="back-link">&larr; Return to Public Website</a>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ============================================================ -->
+  <!-- 2. MAIN ADMIN DASHBOARD & CMS (Visible when authenticated)    -->
+  <!-- ============================================================ -->
+  <div id="dashboard-view" class="admin-app-layout" style="display: none;">
+    
+    <!-- MOBILE SIDEBAR BACKDROP OVERLAY -->
+    <div id="sidebar-overlay" class="sidebar-overlay" onclick="closeSidebar()"></div>
+
+    <!-- SIDEBAR -->
+    <aside id="admin-sidebar" class="admin-sidebar">
+      <div class="sidebar-brand">
+        <a href="../index.html" target="_blank" title="Preview Public Store">
+          <img src="../assets/images/hiramoti_header_logo.png" alt="Hiramoti Collection" class="brand-img">
+        </a>
+        <div class="brand-title">
+          <h3>Hiramoti Admin</h3>
+          <span class="brand-tag">Powai Naka • Satara</span>
+        </div>
+        <button class="sidebar-close-btn" onclick="closeSidebar()">&times;</button>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-section-title">Core Management</div>
+        <button class="nav-item active" data-section="overview" onclick="showSection('overview')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
+          <span>Dashboard</span>
+        </button>
+
+        <button class="nav-item" data-section="products" onclick="showSection('products')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7"/><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><path d="M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4"/><rect width="20" height="5" x="2" y="7" rx="1"/></svg>
+          <span>Products</span>
+          <span id="badge-products-count" class="nav-badge">0</span>
+        </button>
+
+        <button class="nav-item" data-section="stock" onclick="showSection('stock')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" x2="12" y1="2" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          <span>Price & Stock</span>
+        </button>
+
+        <button class="nav-item" data-section="images" onclick="showSection('images')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+          <span>Image Manager</span>
+        </button>
+
+        <button class="nav-item" data-section="reels" onclick="showSection('reels')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="15" x="2" y="5" rx="2"/><polyline points="8 10 12 13 16 10"/></svg>
+          <span>Reels & Videos</span>
+          <span id="badge-reels-count" class="nav-badge">8</span>
+        </button>
+
+        <div class="nav-section-title">Customer Interaction</div>
+        <button class="nav-item" data-section="enquiries" onclick="showSection('enquiries')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          <span>Showroom Visits</span>
+          <span id="badge-enquiries-count" class="nav-badge nav-badge-gold">0</span>
+        </button>
+
+        <div class="nav-section-title">Website Content</div>
+        <button class="nav-item" data-section="founder" onclick="showSection('founder')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a5 5 0 1 0 5 5 5 5 0 0 0-5-5zm0 12c-4.42 0-8 2.24-8 5v3h16v-3c0-2.76-3.58-5-8-5z"/></svg>
+          <span>Founder &amp; Legacy</span>
+        </button>
+
+        <div class="nav-section-title">System</div>
+        <button class="nav-item" data-section="settings" onclick="showSection('settings')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          <span>Settings</span>
+        </button>
+
+        <a href="../index.html" target="_blank" class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" x2="22" y1="12" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+          <span>View Public Store &nearr;</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-user">
+        <div class="user-avatar">HM</div>
+        <div class="user-info">
+          <span id="user-display-name" class="user-name">Admin</span>
+          <span class="user-role">Super Admin</span>
+        </div>
+        <button onclick="handleAdminLogout()" class="btn-logout" title="Sign Out">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
+        </button>
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT AREA -->
+    <div class="admin-main">
+      
+      <!-- TOP NAVIGATION BAR -->
+      <header class="admin-topbar">
+        <div class="topbar-left">
+          <button class="mobile-toggle-btn" onclick="toggleSidebar()" aria-label="Toggle navigation">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" x2="21" y1="12" y2="12"/><line x1="3" x2="21" y1="6" y2="6"/><line x1="3" x2="21" y1="18" y2="18"/></svg>
+          </button>
+          <div class="page-title-group">
+            <h1 id="current-section-title">Dashboard Overview</h1>
+            <span class="page-subtitle">Real-time store management system</span>
+          </div>
+        </div>
+
+        <div class="topbar-right">
+          <button class="btn btn-outline-gold btn-sm" onclick="openAddReelModal()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            <span>+ Add Reel</span>
+          </button>
+          <button class="btn btn-gold btn-sm" onclick="openAddProductModal()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" x2="12" y1="5" y2="19"/><line x1="5" x2="19" y1="12" y2="12"/></svg>
+            <span>+ Add Product</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- SECTIONS CONTAINER -->
+      <div class="admin-content">
+
+        <!-- ======================================================== -->
+        <!-- SECTION 1: OVERVIEW DASHBOARD                            -->
+        <!-- ======================================================== -->
+        <section id="section-overview" class="admin-section active">
+          
+          <!-- KPI Stats Grid -->
+          <div class="kpi-grid">
+            <div class="kpi-card">
+              <div class="kpi-icon icon-products">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg>
+              </div>
+              <div class="kpi-data">
+                <span class="kpi-label">Total Products</span>
+                <h3 id="stat-total-products" class="kpi-value">0</h3>
+                <span class="kpi-sub">Across all categories</span>
+              </div>
+            </div>
+
+            <div class="kpi-card">
+              <div class="kpi-icon icon-instock">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+              </div>
+              <div class="kpi-data">
+                <span class="kpi-label">In Stock</span>
+                <h3 id="stat-in-stock" class="kpi-value">0</h3>
+                <span class="kpi-sub status-pill-success">Ready for customers</span>
+              </div>
+            </div>
+
+            <div class="kpi-card">
+              <div class="kpi-icon icon-outstock">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" x2="9" y1="9" y2="15"/><line x1="9" x2="15" y1="9" y2="15"/></svg>
+              </div>
+              <div class="kpi-data">
+                <span class="kpi-label">Out of Stock</span>
+                <h3 id="stat-out-stock" class="kpi-value">0</h3>
+                <span class="kpi-sub status-pill-danger">Needs replenishment</span>
+              </div>
+            </div>
+
+            <div class="kpi-card">
+              <div class="kpi-icon icon-images">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+              </div>
+              <div class="kpi-data">
+                <span class="kpi-label">Product Images</span>
+                <h3 id="stat-total-images" class="kpi-value">0</h3>
+                <span class="kpi-sub">High-resolution catalog</span>
+              </div>
+            </div>
+
+            <div class="kpi-card">
+              <div class="kpi-icon icon-reels">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="15" x="2" y="5" rx="2"/><polyline points="8 10 12 13 16 10"/></svg>
+              </div>
+              <div class="kpi-data">
+                <span class="kpi-label">Active Reels</span>
+                <h3 id="stat-total-reels" class="kpi-value">0</h3>
+                <span class="kpi-sub">Instagram video feed</span>
+              </div>
+            </div>
+
+            <div class="kpi-card">
+              <div class="kpi-icon icon-enquiries">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              </div>
+              <div class="kpi-data">
+                <span class="kpi-label">Showroom Leads</span>
+                <h3 id="stat-total-enquiries" class="kpi-value">0</h3>
+                <span class="kpi-sub">Appointments booked</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick Actions Bar -->
+          <div class="action-banner">
+            <div class="action-banner-text">
+              <h4>Quick Showroom Actions</h4>
+              <p>Direct shortcuts for common inventory, pricing, and media adjustments.</p>
+            </div>
+            <div class="action-banner-buttons">
+              <button class="btn btn-gold btn-sm" onclick="openAddProductModal()">+ New Product</button>
+              <button class="btn btn-outline-gold btn-sm" onclick="showSection('stock')">Update Stock / Price</button>
+              <button class="btn btn-outline-gold btn-sm" onclick="showSection('images')">Upload Image</button>
+              <button class="btn btn-outline-gold btn-sm" onclick="openAddReelModal()">+ Add Reel</button>
+            </div>
+          </div>
+
+          <!-- Two-Column Overview Tables -->
+          <div class="dashboard-grid">
+            
+            <!-- Recent Products -->
+            <div class="dashboard-panel">
+              <div class="panel-header">
+                <h3>Recently Added Products</h3>
+                <button class="btn-link" onclick="showSection('products')">View All &rarr;</button>
+              </div>
+              <div class="table-responsive">
+                <table class="admin-table">
+                  <thead>
+                    <tr>
+                      <th>Product</th>
+                      <th>Price</th>
+                      <th>Stock</th>
+                      <th>Status</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="overview-recent-products">
+                    <tr><td colspan="5" class="text-center py-4">Loading catalog...</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Recent Enquiries -->
+            <div class="dashboard-panel">
+              <div class="panel-header">
+                <h3>Latest Showroom Visit Appointments</h3>
+                <button class="btn-link" onclick="showSection('enquiries')">View All &rarr;</button>
+              </div>
+              <div class="table-responsive">
+                <table class="admin-table">
+                  <thead>
+                    <tr>
+                      <th>Customer</th>
+                      <th>Phone</th>
+                      <th>Visit Date</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="overview-recent-enquiries">
+                    <tr><td colspan="4" class="text-center py-4">Loading appointments...</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+
+        <!-- ======================================================== -->
+        <!-- SECTION 2: PRODUCTS MANAGEMENT                           -->
+        <!-- ======================================================== -->
+        <section id="section-products" class="admin-section">
+          
+          <div class="section-toolbar">
+            <div class="toolbar-search">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" x2="16.65" y1="21" y2="16.65"/></svg>
+              <input type="text" id="product-search-input" placeholder="Search by name, Marathi title, or code..." oninput="filterProductsTable()">
+            </div>
+
+            <div class="toolbar-filters">
+              <select id="product-category-filter" onchange="filterProductsTable()">
+                <option value="all">All Categories</option>
+                <option value="mens">Men's Fashion</option>
+                <option value="womens">Women's Collection</option>
+                <option value="kids">Kids & Boys</option>
+              </select>
+
+              <select id="product-stock-filter" onchange="filterProductsTable()">
+                <option value="all">All Stock Statuses</option>
+                <option value="in_stock">In Stock</option>
+                <option value="out_of_stock">Out of Stock</option>
+              </select>
+
+              <button class="btn btn-gold btn-sm" onclick="openAddProductModal()">
+                + Add Product
+              </button>
+            </div>
+          </div>
+
+          <div class="dashboard-panel">
+            <div class="table-responsive">
+              <table class="admin-table">
+                <thead>
+                  <tr>
+                    <th>Item</th>
+                    <th>Code</th>
+                    <th>Category / Subtype</th>
+                    <th>Price</th>
+                    <th>Stock</th>
+                    <th>Status</th>
+                    <th>Public Badge</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="products-table-body">
+                  <tr><td colspan="8" class="text-center py-6">Loading products...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+
+        <!-- ======================================================== -->
+        <!-- SECTION 3: QUICK PRICE & STOCK MANAGEMENT                -->
+        <!-- ======================================================== -->
+        <section id="section-stock" class="admin-section">
+          <div class="alert-info-banner">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="16" y2="12"/><line x1="12" x2="12.01" y1="8" y2="8"/></svg>
+            <div>
+              <strong>Instant Showroom Adjustments</strong>: Edit price or stock quantity directly in the fields below and click <em>"Save"</em>. Changes immediately reflect on the public website. Setting stock to <strong>0</strong> automatically marks the product as <em>Out of Stock</em> on all pages.
+            </div>
+          </div>
+
+          <div class="dashboard-panel">
+            <div class="table-responsive">
+              <table class="admin-table quick-edit-table">
+                <thead>
+                  <tr>
+                    <th>Product</th>
+                    <th>Category</th>
+                    <th>Price (₹)</th>
+                    <th>Stock Qty</th>
+                    <th>Live Availability</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="stock-table-body">
+                  <tr><td colspan="6" class="text-center py-6">Loading stock table...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+
+        <!-- ======================================================== -->
+        <!-- SECTION 4: IMAGE MANAGER                                 -->
+        <!-- ======================================================== -->
+        <section id="section-images" class="admin-section">
+          
+          <!-- Image Upload Box -->
+          <div class="dashboard-panel mb-6">
+            <div class="panel-header">
+              <h3>Upload New High-Resolution Image</h3>
+            </div>
+            
+            <form id="image-upload-form" onsubmit="handleImageUpload(event)">
+              <div class="upload-dropzone" id="upload-dropzone">
+                <input type="file" id="image-file-input" accept="image/*" onchange="handleImageFileSelect(event)">
+                <div class="dropzone-content" id="dropzone-prompt">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
+                  <h4>Click or Drag & Drop Product Image Here</h4>
+                  <p>Supports PNG, JPG, JPEG, WEBP, AVIF (Max 10 MB). Preview will appear below before saving.</p>
+                </div>
+
+                <!-- Live Preview Area -->
+                <div class="dropzone-preview" id="dropzone-preview" style="display: none;">
+                  <img id="preview-img" src="" alt="Selected Preview">
+                  <div class="preview-details">
+                    <span id="preview-filename" class="preview-name">filename.jpg</span>
+                    <span id="preview-filesize" class="preview-size">0 KB</span>
+                    <button type="button" class="btn btn-outline btn-sm" onclick="clearImagePreview()">Change Image</button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="upload-options-row">
+                <div class="form-group flex-1">
+                  <label for="image-product-association">Associate with Product (Optional)</label>
+                  <select id="image-product-association" class="form-control">
+                    <option value="">-- Standalone Gallery / Showroom Asset --</option>
+                  </select>
+                </div>
+                <div class="form-group" style="padding-top: 24px;">
+                  <label class="checkbox-label">
+                    <input type="checkbox" id="image-is-primary" checked>
+                    <span>Set as primary featured image</span>
+                  </label>
+                </div>
+                <div class="form-group" style="padding-top: 20px;">
+                  <button type="submit" id="btn-upload-submit" class="btn btn-gold">
+                    Upload & Save Image
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+
+          <!-- Existing Images Gallery -->
+          <div class="dashboard-panel">
+            <div class="panel-header">
+              <h3>Available Store & Catalog Images</h3>
+              <span id="images-count-label" class="text-sm text-muted">0 images</span>
+            </div>
+
+            <div id="images-grid" class="admin-images-grid">
+              <div class="text-center col-span-full py-8 text-muted">Loading images...</div>
+            </div>
+          </div>
+        </section>
+
+
+        <!-- ======================================================== -->
+        <!-- SECTION 5: REELS & VIDEOS MANAGEMENT                     -->
+        <!-- ======================================================== -->
+        <section id="section-reels" class="admin-section">
+          
+          <div class="section-toolbar">
+            <div>
+              <h3 style="margin: 0; font-size: 1.25rem; font-family: var(--font-serif); color: var(--color-gold);">
+                Instagram Reels Showcase Feed
+              </h3>
+              <p style="margin: 2px 0 0; font-size: 0.82rem; color: rgba(255,255,255,0.65);">
+                Manage viral videos shown on Home page, Catalog, and Reels Hub. Newly added reels appear instantly.
+              </p>
+            </div>
+            <button class="btn btn-gold btn-sm" onclick="openAddReelModal()">
+              + Add New Reel
+            </button>
+          </div>
+
+          <div id="admin-reels-grid" class="admin-reels-cards-grid">
+            <div class="text-center col-span-full py-8 text-muted">Loading Instagram reels...</div>
+          </div>
+        </section>
+
+
+        <!-- ======================================================== -->
+        <!-- SECTION 6: SHOWROOM ENQUIRIES / BOOKINGS                 -->
+        <!-- ======================================================== -->
+        <section id="section-enquiries" class="admin-section">
+          <div class="dashboard-panel">
+            <div class="panel-header">
+              <h3>Showroom Visit Appointments & Inquiries</h3>
+              <span id="enquiries-count-label" class="text-sm text-muted">0 inquiries</span>
+            </div>
+
+            <div class="table-responsive">
+              <table class="admin-table">
+                <thead>
+                  <tr>
+                    <th>Customer Name</th>
+                    <th>WhatsApp / Phone</th>
+                    <th>Satara Area / Landmark</th>
+                    <th>Preferred Date & Time</th>
+                    <th>Style Interest</th>
+                    <th>Received At</th>
+                    <th>Quick Contact</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="enquiries-table-body">
+                  <tr><td colspan="8" class="text-center py-6">Loading customer leads...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+
+        <!-- ======================================================== -->
+        <!-- SECTION 7: SETTINGS                                      -->
+        <!-- ======================================================== -->
+        <section id="section-settings" class="admin-section">
+          <div class="dashboard-grid">
+            
+            <!-- Secure Mobile OTP Password Verification -->
+            <div class="dashboard-panel">
+              <div class="panel-header">
+                <h3>Admin Security & Password</h3>
+              </div>
+              <div id="pwd-alert" class="admin-alert admin-alert-success" style="display: none;"></div>
+
+              <!-- STEP 1: Request OTP via Registered Mobile -->
+              <div id="otp-step-1" class="otp-wizard-step active">
+                <p style="font-size: 0.86rem; color: rgba(255,255,255,0.85); line-height: 1.5; margin-bottom: 16px;">
+                  To protect store operations, password changes require multi-factor verification via your registered admin mobile number.
+                </p>
+                <div class="otp-phone-display">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                  <div>
+                    <span style="font-size: 0.72rem; color: var(--color-gold-light); display: block; text-transform: uppercase;">Registered Admin Mobile</span>
+                    <strong>+91 ******5454</strong>
+                  </div>
+                </div>
+                <button type="button" id="btn-request-otp" class="btn btn-gold btn-block" onclick="handleRequestOtp()">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+                  <span>Send Verification OTP</span>
+                </button>
+              </div>
+
+              <!-- STEP 2: Enter 6-Digit OTP -->
+              <div id="otp-step-2" class="otp-wizard-step">
+                <p style="font-size: 0.86rem; color: rgba(255,255,255,0.85); line-height: 1.5; margin-bottom: 14px;">
+                  Enter the 6-digit one-time passcode sent to your registered phone <strong>+91 ******5454</strong>.
+                </p>
+                <div class="form-group" style="text-align: center;">
+                  <label for="otp-code-input" style="font-size: 0.84rem;">Enter 6-Digit Code</label>
+                  <input type="text" id="otp-code-input" class="form-control otp-input-field" maxlength="6" placeholder="••••••" autocomplete="one-time-code" inputmode="numeric">
+                </div>
+                <div class="otp-meta-row">
+                  <span>Expires in: <strong id="otp-timer" class="otp-countdown">05:00</strong></span>
+                  <button type="button" id="btn-resend-otp" class="btn-resend-otp" onclick="handleRequestOtp()" disabled>Resend OTP</button>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                  <button type="button" class="btn btn-outline" style="flex: 1;" onclick="resetOtpWizard()">Cancel</button>
+                  <button type="button" id="btn-verify-otp" class="btn btn-gold" style="flex: 2;" onclick="handleVerifyOtp()">
+                    <span>Verify Code & Continue</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- STEP 3: Enter New Password -->
+              <div id="otp-step-3" class="otp-wizard-step">
+                <div class="alert-info-banner" style="margin-bottom: 16px; padding: 10px 14px;">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                  <span>Identity verified via OTP. Please enter your new password.</span>
+                </div>
+                <form id="change-pwd-form" onsubmit="handleFinalPasswordChange(event)">
+                  <div class="form-group">
+                    <label for="pwd-new">New Password (Min 8 characters) *</label>
+                    <input type="password" id="pwd-new" class="form-control" required minlength="8" placeholder="Enter strong new password">
+                  </div>
+                  <div class="form-group">
+                    <label for="pwd-confirm">Confirm New Password *</label>
+                    <input type="password" id="pwd-confirm" class="form-control" required minlength="8" placeholder="Re-enter new password">
+                  </div>
+                  <button type="submit" id="btn-submit-new-pwd" class="btn btn-gold btn-block">
+                    <span>Update Password & Re-authenticate</span>
+                  </button>
+                </form>
+              </div>
+
+            </div>
+
+            <!-- Showroom Store Info -->
+            <div class="dashboard-panel">
+              <div class="panel-header">
+                <h3>Showroom Institutional Profile</h3>
+              </div>
+              <div class="store-info-list">
+                <div class="store-info-row">
+                  <strong>Brand:</strong>
+                  <span>Hiramoti Collection (हिरामोती कलेक्शन)</span>
+                </div>
+                <div class="store-info-row">
+                  <strong>Location:</strong>
+                  <span>Opp. Rajdhani Satara Selfie Point, Powai Naka, Satara – 415001</span>
+                </div>
+                <div class="store-info-row">
+                  <strong>Store Hours:</strong>
+                  <span>9:15 AM – 9:15 PM (Open All 7 Days)</span>
+                </div>
+                <div class="store-info-row">
+                  <strong>Official Helpline:</strong>
+                  <span>+91 95959 89815 / 7588745454</span>
+                </div>
+                <div class="store-info-row">
+                  <strong>Instagram:</strong>
+                  <span>@hiramoticollection</span>
+                </div>
+                <div class="store-info-row">
+                  <strong>Developer Support:</strong>
+                  <span>cloudtechnologiess.in (+91 8830464841)</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- ======================================================== -->
+        <!-- SECTION: FOUNDER & LEGACY CMS                            -->
+        <!-- ======================================================== -->
+        <section id="section-founder" class="admin-section">
+          <div class="section-header-row" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 14px;">
+            <div>
+              <h2 style="font-family: var(--font-serif); font-size: 1.8rem; color: var(--color-gold); margin-bottom: 4px;">Founder &amp; Legacy CMS</h2>
+              <p style="color: var(--color-muted); font-size: 0.88rem; margin: 0;">Manage Founder Profile, Biography &amp; Verified History Milestones (1987, 2012, 2026)</p>
+            </div>
+            <div style="display: flex; gap: 10px; align-items: center;">
+              <a href="../founder.html" target="_blank" class="btn btn-outline" style="padding: 8px 14px; font-size: 0.84rem;">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 5px;"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                View Public Page
+              </a>
+              <button type="button" class="btn btn-gold" onclick="saveFounderData()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 5px;"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                Save Founder &amp; Legacy Changes
+              </button>
+            </div>
+          </div>
+
+          <div id="founder-alert" class="admin-alert admin-alert-success" style="display: none; margin-bottom: 20px;"></div>
+
+          <div class="dashboard-grid">
+            <!-- 1. Founder Information Panel -->
+            <div class="dashboard-panel">
+              <div class="panel-header" style="display: flex; justify-content: space-between; align-items: center;">
+                <h3>Founder Profile &amp; Tribute</h3>
+                <span class="badge-tag badge-gold" style="font-size: 0.72rem;">Late Shri Ujwal Rathi</span>
+              </div>
+
+              <div class="form-group">
+                <label for="founder-name">Founder Full Name *</label>
+                <input type="text" id="founder-name" class="form-control" value="Late Shri Ujwal Rathi" required>
+              </div>
+
+              <div class="form-group">
+                <label for="founder-designation">Founder Designation / Title *</label>
+                <input type="text" id="founder-designation" class="form-control" value="Founder, Hiramoti Collection" required>
+              </div>
+
+              <!-- Founder Photo Uploader (Device Upload) -->
+              <div class="form-group media-upload-group">
+                <label>Founder Portrait Photo * <span class="text-muted text-xs" style="font-size: 0.76rem; font-weight: normal;">(.jpg, .png, .webp)</span></label>
+                <input type="file" id="founder-photo-file" accept="image/jpeg,image/png,image/webp" style="display: none;" onchange="handleFounderPhotoFileSelect(event)">
+                <input type="hidden" id="founder-photo-hidden" value="assets/images/hiramoti_founder_home.jpg">
+
+                <div class="media-upload-action-row" style="margin-bottom: 10px;">
+                  <button type="button" class="btn btn-outline-gold" onclick="document.getElementById('founder-photo-file').click()">
+                    📁 Choose Image from Device
+                  </button>
+                  <span id="founder-photo-filename-label" class="media-file-info text-muted">assets/images/hiramoti_founder_home.jpg</span>
+                </div>
+
+                <div class="reel-cover-preview-box" style="display: flex; gap: 16px; align-items: center; background: rgba(0,0,0,0.25); padding: 12px; border-radius: 6px; border: 1px solid var(--color-border-dark);">
+                  <img id="founder-photo-thumb" src="../assets/images/hiramoti_founder_home.jpg" alt="Founder Portrait" style="width: 80px; height: 100px; object-fit: cover; border-radius: 4px; border: 1px solid var(--color-gold);">
+                  <div>
+                    <span id="founder-photo-badge" class="badge-cover-source" style="margin-bottom: 6px; display: inline-block;">Current Photo</span>
+                    <p style="font-size: 0.78rem; color: var(--color-muted); margin: 0 0 6px;">Click Choose Image from Device to upload a portrait directly from your computer.</p>
+                    <button type="button" class="btn btn-outline btn-xs" onclick="resetFounderPhoto()">Reset to Default</button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="founder-quote">Founder Quote *</label>
+                <input type="text" id="founder-quote" class="form-control" value="Trust is not given — it is earned, stitch by stitch, customer by customer.">
+              </div>
+
+              <div class="form-group">
+                <label for="founder-biography">Founder Tribute &amp; Core Values *</label>
+                <textarea id="founder-biography" class="form-control" rows="6" placeholder="Respectful biography honoring founder's principles and legacy..."></textarea>
+                <span class="help-text">Separate paragraphs with a blank line. Placeholder note appears if biography is undergoing update.</span>
+              </div>
+            </div>
+
+            <!-- 2. Milestones Manager Panel -->
+            <div class="dashboard-panel">
+              <div class="panel-header" style="display: flex; justify-content: space-between; align-items: center;">
+                <h3>History Milestones</h3>
+                <button type="button" class="btn btn-gold btn-xs" onclick="addNewMilestoneForm()">+ Add Milestone</button>
+              </div>
+              <p style="font-size: 0.82rem; color: var(--color-muted); margin-bottom: 16px;">
+                Confirmed landmark moments in Hiramoti's history (1987 Founding, 2012 First Renovation, 2026 Second Renovation).
+              </p>
+
+              <div id="milestones-admin-container" style="display: flex; flex-direction: column; gap: 18px;">
+                <!-- Dynamically rendered via renderAdminMilestones() -->
+              </div>
+            </div>
+          </div>
+
+          <div style="margin-top: 25px; text-align: right;">
+            <button type="button" class="btn btn-gold" onclick="saveFounderData()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 5px;"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+              Save Founder &amp; Legacy Changes
+            </button>
+          </div>
+        </section>
+
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ============================================================ -->
+  <!-- MODALS CONTAINER                                             -->
+  <!-- ============================================================ -->
+
+  <!-- PRODUCT MODAL (Add / Edit) -->
+  <div id="product-modal" class="admin-modal">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 id="product-modal-title">Add New Product</h3>
+        <button class="modal-close-btn" onclick="closeProductModal()">&times;</button>
+      </div>
+      <form id="product-form" onsubmit="handleProductFormSubmit(event)">
+        <input type="hidden" id="product-id-hidden">
+        
+        <div class="modal-body">
+          <div class="form-row-2">
+            <div class="form-group">
+              <label for="prod-name">Product Name (English) *</label>
+              <input type="text" id="prod-name" class="form-control" required placeholder="e.g. Dual-Tone Bomber Jacket">
+            </div>
+            <div class="form-group">
+              <label for="prod-marathi">Marathi Name</label>
+              <input type="text" id="prod-marathi" class="form-control" placeholder="उदा. रिव्हर्सिबल बॉम्बर जॅकेट">
+            </div>
+          </div>
+
+          <div class="form-row-3">
+            <div class="form-group">
+              <label for="prod-category">Category *</label>
+              <select id="prod-category" class="form-control" required>
+                <option value="mens">Men's Fashion</option>
+                <option value="womens">Women's Collection</option>
+                <option value="kids">Kids & Boys</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="prod-subtype">Subtype *</label>
+              <select id="prod-subtype" class="form-control" required>
+                <option value="jackets">Bomber & TPU Jackets</option>
+                <option value="formal_shirts">Formal & Lycra Shirts</option>
+                <option value="party_wear">Party & Printed Shirts</option>
+                <option value="casual_denim">T-Shirts & Combos</option>
+                <option value="denim">Denim Jeans & Trousers</option>
+                <option value="ethnic">Festive & Ethnic Kurtas</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="prod-badge">Display Badge</label>
+              <input type="text" id="prod-badge" class="form-control" placeholder="e.g. Viral Reel, Mega Offer">
+            </div>
+          </div>
+
+          <div class="form-row-3">
+            <div class="form-group">
+              <label for="prod-price">Sale Price (₹) *</label>
+              <input type="number" id="prod-price" class="form-control" required min="1" step="1" placeholder="699">
+            </div>
+            <div class="form-group">
+              <label for="prod-original-price">Original MRP (₹)</label>
+              <input type="number" id="prod-original-price" class="form-control" min="1" step="1" placeholder="1299">
+            </div>
+            <div class="form-group">
+              <label for="prod-stock">Stock Quantity *</label>
+              <input type="number" id="prod-stock" class="form-control" required min="0" step="1" value="15">
+            </div>
+          </div>
+
+          <div class="form-row-2">
+            <div class="form-group">
+              <label for="prod-status">Stock Availability</label>
+              <select id="prod-status" class="form-control">
+                <option value="in_stock">In Stock</option>
+                <option value="out_of_stock">Out of Stock</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="prod-sizes">Available Sizes (Comma separated)</label>
+              <input type="text" id="prod-sizes" class="form-control" placeholder="M, L, XL, XXL">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="prod-image">Image URL / Path *</label>
+            <div class="input-with-button">
+              <input type="text" id="prod-image" class="form-control" required placeholder="assets/images/real_reel_DaiL4H0zCqV.jpg">
+              <button type="button" class="btn btn-outline-gold btn-sm" onclick="chooseImageForProduct()">Pick from Gallery</button>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="prod-reel-url">Linked Instagram Reel URL (Optional)</label>
+            <input type="url" id="prod-reel-url" class="form-control" placeholder="https://www.instagram.com/reel/DaiL4H0zCqV/">
+          </div>
+
+          <div class="form-group">
+            <label for="prod-description">Showroom Description</label>
+            <textarea id="prod-description" class="form-control" rows="3" placeholder="Fabric details, fit, and showroom offer highlights..."></textarea>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" onclick="closeProductModal()">Cancel</button>
+          <button type="submit" id="btn-save-product" class="btn btn-gold">Save Product</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+
+  <!-- REEL MODAL (Add / Edit) -->
+  <div id="reel-modal" class="admin-modal">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 id="reel-modal-title">Add Instagram Reel</h3>
+        <button class="modal-close-btn" onclick="closeReelModal()">&times;</button>
+      </div>
+      <form id="reel-form" onsubmit="handleReelFormSubmit(event)">
+        <input type="hidden" id="reel-id-hidden">
+        
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="reel-url">Instagram Reel URL <span class="text-muted text-xs" style="font-size: 0.76rem; font-weight: normal;">(Optional if uploading video file)</span></label>
+            <input type="url" id="reel-url" class="form-control" placeholder="https://www.instagram.com/reel/DaiL4H0zCqV/" oninput="handleReelUrlInput(this.value)">
+            <span class="help-text">Paste the Instagram reel link, or upload an MP4/WEBM video file below.</span>
+          </div>
+
+          <!-- OPTIONAL REEL VIDEO UPLOAD -->
+          <div class="form-group media-upload-group">
+            <label>Reel Video File <span class="text-muted text-xs" style="font-size: 0.76rem; font-weight: normal;">(Optional — .mp4, .webm, .mov up to 50 MB)</span></label>
+            <input type="file" id="reel-video-file" accept=".mp4,.webm,.mov" style="display: none;" onchange="handleReelVideoFileSelect(event)">
+            <input type="hidden" id="reel-video-url-hidden">
+
+            <div class="media-upload-action-row">
+              <button type="button" class="btn btn-outline-gold" onclick="document.getElementById('reel-video-file').click()">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 6px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
+                📁 Upload Reel Video
+              </button>
+              <span id="reel-video-status-text" class="media-file-info text-muted">No video selected</span>
+            </div>
+
+            <!-- Video Upload Progress Bar -->
+            <div id="reel-video-progress-wrap" class="upload-progress-wrapper" style="display: none;">
+              <div class="upload-progress-track">
+                <div id="reel-video-progress-bar" class="upload-progress-fill" style="width: 0%;"></div>
+              </div>
+              <span id="reel-video-progress-label" class="upload-progress-text">0%</span>
+            </div>
+
+            <!-- Video Preview Card -->
+            <div id="reel-video-preview-card" class="reel-media-preview-card" style="display: none;">
+              <video id="reel-video-element" controls playsinline preload="metadata" style="max-height: 200px; width: 100%; border-radius: 4px; background: #000;"></video>
+              <div class="media-card-controls">
+                <span id="reel-video-name-display" class="media-card-name">video.mp4</span>
+                <div class="media-card-btn-group">
+                  <button type="button" class="btn btn-outline btn-xs" onclick="document.getElementById('reel-video-file').click()">Replace Video</button>
+                  <button type="button" class="btn btn-outline-danger btn-xs" onclick="clearReelVideo()">Remove Video</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-row-2">
+            <div class="form-group">
+              <label for="reel-title">Title (English) *</label>
+              <input type="text" id="reel-title" class="form-control" required placeholder="e.g. Bomber Jacket Sale Live — ₹699/-">
+            </div>
+            <div class="form-group">
+              <label for="reel-marathi">Marathi Title</label>
+              <input type="text" id="reel-marathi" class="form-control" placeholder="उदा. बॉम्बर जॅकेट स्पेशल ऑफर">
+            </div>
+          </div>
+
+          <div class="form-row-3">
+            <div class="form-group">
+              <label for="reel-price">Price Tag</label>
+              <input type="text" id="reel-price" class="form-control" placeholder="₹699 or 3 FOR ₹800">
+            </div>
+            <div class="form-group">
+              <label for="reel-offer">Offer Badge</label>
+              <input type="text" id="reel-offer" class="form-control" placeholder="LIMITED DEAL, FESTIVE">
+            </div>
+            <div class="form-group">
+              <label for="reel-order">Display Order</label>
+              <input type="number" id="reel-order" class="form-control" value="1" min="1">
+            </div>
+          </div>
+
+          <!-- REEL COVER IMAGE WITH DEVICE UPLOAD -->
+          <div class="form-group media-upload-group">
+            <label>Reel Cover Image *</label>
+            <input type="file" id="reel-cover-file" accept=".jpg,.jpeg,.png,.webp" style="display: none;" onchange="handleReelCoverFileSelect(event)">
+            <input type="hidden" id="reel-image-hidden" value="assets/images/real_reel_DaiL4H0zCqV.jpg">
+
+            <div class="media-upload-action-row">
+              <button type="button" class="btn btn-gold btn-choose-device" onclick="document.getElementById('reel-cover-file').click()">
+                📁 Choose Image from Device
+              </button>
+              <span id="reel-cover-filename-label" class="media-file-info">Selected: default_cover.jpg</span>
+            </div>
+
+            <!-- Cover Preview Card -->
+            <div id="reel-cover-preview-card" class="reel-cover-preview-card">
+              <div class="cover-thumb-wrap">
+                <img id="reel-preview-thumb" src="../assets/images/real_reel_DaiL4H0zCqV.jpg" alt="Reel Cover Preview" onerror="this.onerror=null; this.src='../assets/images/real_reel_DaiL4H0zCqV.jpg';">
+              </div>
+              <div class="cover-meta-wrap">
+                <div class="cover-status-heading">
+                  <strong>Live Cover Preview</strong>
+                  <span id="reel-cover-badge" class="badge-cover-source">Current Cover</span>
+                </div>
+                <span id="reel-cover-path-display" class="cover-path-text">assets/images/real_reel_DaiL4H0zCqV.jpg</span>
+                <div class="cover-actions-row">
+                  <button type="button" class="btn btn-outline-gold btn-sm" onclick="document.getElementById('reel-cover-file').click()">
+                    Replace Image
+                  </button>
+                  <button type="button" class="btn btn-outline-danger btn-sm" onclick="clearReelCoverImage()">
+                    Remove Image
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="reel-caption">Reel Caption</label>
+            <textarea id="reel-caption" class="form-control" rows="3" placeholder="Trending caption and description..."></textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="checkbox-label">
+              <input type="checkbox" id="reel-is-active" checked>
+              <span>Publish on Website (Home page, Catalog & Reels Hub)</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" onclick="closeReelModal()">Cancel</button>
+          <button type="submit" id="btn-save-reel" class="btn btn-gold">Save Reel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+
+  <!-- REEL EMBED PREVIEW MODAL -->
+  <div id="reel-preview-modal" class="admin-modal">
+    <div class="modal-dialog modal-dialog-sm" style="max-width: 440px;">
+      <div class="modal-header">
+        <h3 id="preview-reel-title">Reel Preview</h3>
+        <button class="modal-close-btn" onclick="closeReelPreviewModal()">&times;</button>
+      </div>
+      <div class="modal-body" style="padding: 10px; background: #000; text-align: center;">
+        <iframe id="admin-reel-iframe" src="" style="width: 100%; height: 500px; border: none; border-radius: var(--radius-sm);" allowfullscreen></iframe>
+        <video id="admin-reel-video" controls playsinline style="width: 100%; max-height: 500px; border-radius: var(--radius-sm); display: none;"></video>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- CONFIRMATION DIALOG MODAL -->
+  <div id="confirm-modal" class="admin-modal">
+    <div class="modal-dialog modal-dialog-sm">
+      <div class="modal-header">
+        <h3 id="confirm-title" style="color: var(--color-danger);">Confirm Action</h3>
+        <button class="modal-close-btn" onclick="closeConfirmModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p id="confirm-message" style="font-size: 0.95rem; line-height: 1.5; color: rgba(255,255,255,0.85); margin: 0;">
+          Are you sure you want to proceed?
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" onclick="closeConfirmModal()">Cancel</button>
+        <button type="button" id="btn-confirm-proceed" class="btn btn-danger">Confirm Delete</button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- TOAST NOTIFICATION CONTAINER -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- ADMIN SCRIPTS -->
+  <script src="../js/admin.js"></script>
+</body>
+</html>
