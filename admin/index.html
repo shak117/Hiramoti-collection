@@ -697,21 +697,21 @@
               <div class="form-group media-upload-group">
                 <label>Founder Portrait Photo * <span class="text-muted text-xs" style="font-size: 0.76rem; font-weight: normal;">(.jpg, .png, .webp)</span></label>
                 <input type="file" id="founder-photo-file" accept="image/jpeg,image/png,image/webp" style="display: none;" onchange="handleFounderPhotoFileSelect(event)">
-                <input type="hidden" id="founder-photo-hidden" value="assets/images/hiramoti_founder_home.jpg">
+                <input type="hidden" id="founder-photo-hidden" value="">
 
                 <div class="media-upload-action-row" style="margin-bottom: 10px;">
                   <button type="button" class="btn btn-outline-gold" onclick="document.getElementById('founder-photo-file').click()">
                     📁 Choose Image from Device
                   </button>
-                  <span id="founder-photo-filename-label" class="media-file-info text-muted">assets/images/hiramoti_founder_home.jpg</span>
+                  <span id="founder-photo-filename-label" class="media-file-info text-muted">No photo uploaded (Using Commemorative Memorial Seal)</span>
                 </div>
 
                 <div class="reel-cover-preview-box" style="display: flex; gap: 16px; align-items: center; background: rgba(0,0,0,0.25); padding: 12px; border-radius: 6px; border: 1px solid var(--color-border-dark);">
-                  <img id="founder-photo-thumb" src="../assets/images/hiramoti_founder_home.jpg" alt="Founder Portrait" style="width: 80px; height: 100px; object-fit: cover; border-radius: 4px; border: 1px solid var(--color-gold);">
+                  <img id="founder-photo-thumb" src="../assets/images/favicon.png" alt="Founder Portrait" style="width: 80px; height: 100px; object-fit: contain; border-radius: 4px; border: 1px solid var(--color-gold); background: #20040A; padding: 12px;">
                   <div>
-                    <span id="founder-photo-badge" class="badge-cover-source" style="margin-bottom: 6px; display: inline-block;">Current Photo</span>
-                    <p style="font-size: 0.78rem; color: var(--color-muted); margin: 0 0 6px;">Click Choose Image from Device to upload a portrait directly from your computer.</p>
-                    <button type="button" class="btn btn-outline btn-xs" onclick="resetFounderPhoto()">Reset to Default</button>
+                    <span id="founder-photo-badge" class="badge-cover-source" style="margin-bottom: 6px; display: inline-block;">Memorial Seal</span>
+                    <p style="font-size: 0.78rem; color: var(--color-muted); margin: 0 0 6px;">Click Choose Image from Device to upload an authentic portrait photo of Late Shri Ujwal Rathi.</p>
+                    <button type="button" class="btn btn-outline btn-xs" onclick="resetFounderPhoto()">Use Memorial Seal</button>
                   </div>
                 </div>
               </div>

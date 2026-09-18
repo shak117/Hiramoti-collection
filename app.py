@@ -1042,7 +1042,7 @@ def api_get_founder():
         "founder": {
             "name": "Late Shri Ujwal Rathi",
             "designation": "Founder, Hiramoti Collection",
-            "photo": "assets/images/hiramoti_founder_home.jpg",
+            "photo": "",
             "quote": "Trust is not given — it is earned, stitch by stitch, customer by customer.",
             "quote_author": "Late Shri Ujwal Rathi",
             "biography": "Late Shri Ujwal Rathi laid the cornerstone of Hiramoti Collection in 1987 with a heartfelt vision: to provide the people of Satara with exquisite garments, genuine hospitality, and unquestionable trust. Under his dedicated leadership, Hiramoti Collection became far more than a clothing store — it became an enduring institution in the historic heart of Satara.\n\nHis commitment to welcoming every customer as family and ensuring fair pricing without compromising on fabric quality established standards that guide the showroom to this very day."

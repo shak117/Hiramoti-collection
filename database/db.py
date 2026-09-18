@@ -363,7 +363,7 @@ def init_db():
                 "original_price": 2999,
                 "discount": "37% OFF",
                 "badge": "Celebration",
-                "image": "assets/images/hiramoti_founder_home.jpg",
+                "image": "assets/images/hiramoti_interior_reception.jpg",
                 "reel_url": "https://www.instagram.com/hiramoticollection/",
                 "description": "Handcrafted festive ensemble featuring raw silk texture and subtle antique gold button accents for Satara weddings.",
                 "sizes": "38, 40, 42, 44",
@@ -547,7 +547,7 @@ def init_db():
         seed_gallery = [
             {"id": "gal-1", "title": "Grand Interior Reception & Royal HMC Wall", "subtitle": "Opp. Rajdhani Satara Selfie Point, Powai Naka Satara", "category": "showroom", "is_wide": 1, "image": "assets/images/hiramoti_interior_reception.jpg", "display_order": 1},
             {"id": "gal-2", "title": "Showroom Entrance & Red Neon Signboard", "subtitle": "Powai Naka entrance with grand floral celebration archway", "category": "showroom", "is_wide": 1, "image": "assets/images/hiramoti_exterior_entrance.jpg", "display_order": 2},
-            {"id": "gal-3", "title": "Hiramoti Collection Founder — Pankaj Rathi", "subtitle": "परंपरा, भरोसा और स्टाइल – 39 सालों से आपके साथ", "category": "showroom", "is_wide": 0, "image": "assets/images/hiramoti_founder_home.jpg", "display_order": 3},
+            {"id": "gal-3", "title": "Hiramoti Collection — Showroom Proprietor Pankaj Rathi", "subtitle": "परंपरा, भरोसा और स्टाइल – 39 सालों से आपके साथ", "category": "showroom", "is_wide": 0, "image": "assets/images/hiramoti_founder_home.jpg", "display_order": 3},
             {"id": "gal-4", "title": "Two-Story Glass Facade at Night", "subtitle": "Illuminated showroom glass display at Powai Naka", "category": "showroom", "is_wide": 0, "image": "assets/images/hiramoti_exterior_facade.jpg", "display_order": 4},
             {"id": "gal-5", "title": "Branded Cotton & Lycra Shirts Shelf", "subtitle": "Over 500+ Shirt Designs in Stock", "category": "shirts", "is_wide": 0, "image": "assets/images/real_store_shirts.jpg", "display_order": 5},
             {"id": "gal-6", "title": "Premium Stretch Denim & Trousers Counter", "subtitle": "Heavy Ring-Spun Denim Sizes 28 to 42", "category": "jeans", "is_wide": 0, "image": "assets/images/real_store_jeans.jpg", "display_order": 6},
@@ -568,7 +568,7 @@ def init_db():
             "founder": {
                 "name": "Late Shri Ujwal Rathi",
                 "designation": "Founder, Hiramoti Collection",
-                "photo": "assets/images/hiramoti_founder_home.jpg",
+                "photo": "",
                 "quote": "Trust is not given — it is earned, stitch by stitch, customer by customer.",
                 "quote_author": "Late Shri Ujwal Rathi",
                 "biography": "Late Shri Ujwal Rathi laid the cornerstone of Hiramoti Collection in 1987 with a heartfelt vision: to provide the people of Satara with exquisite garments, genuine hospitality, and unquestionable trust. Under his dedicated leadership, Hiramoti Collection became far more than a clothing store — it became an enduring institution in the historic heart of Satara.\n\nHis commitment to welcoming every customer as family and ensuring fair pricing without compromising on fabric quality established standards that guide the showroom to this very day."

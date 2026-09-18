@@ -162,13 +162,31 @@
     <div class="container">
       
       <!-- Filter Bar with All Varieties -->
-      <div class="filter-bar" style="display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; margin-bottom: 40px;">
-        <button class="cat-filter-btn btn btn-gold" data-cat="all" onclick="filterCatalog('all', this)">All Real Stock</button>
-        <button class="cat-filter-btn btn btn-outline" data-cat="jackets" onclick="filterCatalog('jackets', this)">Bomber & TPU Jackets</button>
-        <button class="cat-filter-btn btn btn-outline" data-cat="shirts" onclick="filterCatalog('shirts', this)">Cotton & Printed Shirts</button>
-        <button class="cat-filter-btn btn btn-outline" data-cat="casual" onclick="filterCatalog('casual', this)">T-Shirts & Track Combos</button>
-        <button class="cat-filter-btn btn btn-outline" data-cat="denim" onclick="filterCatalog('denim', this)">Denim & Trousers</button>
-        <button class="cat-filter-btn btn btn-outline" data-cat="ethnic" onclick="filterCatalog('ethnic', this)">Festive & Ethnic Wear</button>
+      <div class="filter-bar">
+        <button class="cat-filter-btn btn-gold active" data-cat="all" onclick="filterCatalog('all', this)">
+          <span class="cat-btn-icon">✨</span>
+          <span>All Real Stock</span>
+        </button>
+        <button class="cat-filter-btn" data-cat="jackets" onclick="filterCatalog('jackets', this)">
+          <span class="cat-btn-icon">🧥</span>
+          <span>Bomber &amp; TPU Jackets</span>
+        </button>
+        <button class="cat-filter-btn" data-cat="shirts" onclick="filterCatalog('shirts', this)">
+          <span class="cat-btn-icon">👔</span>
+          <span>Cotton &amp; Printed Shirts</span>
+        </button>
+        <button class="cat-filter-btn" data-cat="casual" onclick="filterCatalog('casual', this)">
+          <span class="cat-btn-icon">👕</span>
+          <span>T-Shirts &amp; Track Combos</span>
+        </button>
+        <button class="cat-filter-btn" data-cat="denim" onclick="filterCatalog('denim', this)">
+          <span class="cat-btn-icon">👖</span>
+          <span>Denim &amp; Trousers</span>
+        </button>
+        <button class="cat-filter-btn" data-cat="ethnic" onclick="filterCatalog('ethnic', this)">
+          <span class="cat-btn-icon">👑</span>
+          <span>Festive &amp; Ethnic Wear</span>
+        </button>
       </div>
 
       <!-- Real Products Grid -->
@@ -666,10 +684,10 @@
       if (matchingBtn) {
         document.querySelectorAll(".cat-filter-btn").forEach(function(b) {
           b.classList.remove("btn-gold");
-          b.classList.add("btn-outline");
+          b.classList.remove("active");
         });
         matchingBtn.classList.add("btn-gold");
-        matchingBtn.classList.remove("btn-outline");
+        matchingBtn.classList.add("active");
       }
       renderRealCatalog(catParam);
     });
@@ -735,10 +753,10 @@
     function filterCatalog(category, btn) {
       document.querySelectorAll(".cat-filter-btn").forEach(function(b) {
         b.classList.remove("btn-gold");
-        b.classList.add("btn-outline");
+        b.classList.remove("active");
       });
       btn.classList.add("btn-gold");
-      btn.classList.remove("btn-outline");
+      btn.classList.add("active");
       renderRealCatalog(category);
     }
   </script>

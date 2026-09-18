@@ -367,7 +367,7 @@ const REAL_PRODUCTS = [
     originalPrice: 2999,
     discount: "37% OFF",
     badge: "Celebration",
-    image: "assets/images/hiramoti_founder_home.jpg",
+    image: "assets/images/hiramoti_interior_reception.jpg",
     reelUrl: "https://www.instagram.com/hiramoticollection/",
     description: "Handcrafted festive ensemble featuring raw silk texture and subtle antique gold button accents for Satara weddings.",
     sizes: ["38", "40", "42", "44"]

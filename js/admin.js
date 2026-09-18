@@ -1714,9 +1714,21 @@ async function loadFounderAdminData() {
 
   if (nameEl) nameEl.value = f.name || "Late Shri Ujwal Rathi";
   if (desigEl) desigEl.value = f.designation || "Founder, Hiramoti Collection";
-  if (photoHidden) photoHidden.value = f.photo || "assets/images/hiramoti_founder_home.jpg";
-  if (photoLabel) photoLabel.textContent = f.photo || "assets/images/hiramoti_founder_home.jpg";
-  if (photoThumb) photoThumb.src = resolveImageUrl(f.photo || "assets/images/hiramoti_founder_home.jpg");
+  var currentPhoto = (f.photo && !f.photo.includes("hiramoti_founder_home.jpg")) ? f.photo : "";
+  if (photoHidden) photoHidden.value = currentPhoto;
+  if (photoLabel) photoLabel.textContent = currentPhoto || "No photo uploaded (Using Commemorative Memorial Seal)";
+  if (photoThumb) {
+    if (currentPhoto) {
+      photoThumb.src = resolveImageUrl(currentPhoto);
+      photoThumb.style.objectFit = "cover";
+      photoThumb.style.padding = "0";
+    } else {
+      photoThumb.src = "../assets/images/favicon.png";
+      photoThumb.style.objectFit = "contain";
+      photoThumb.style.padding = "12px";
+      photoThumb.style.background = "#20040A";
+    }
+  }
   if (quoteEl) quoteEl.value = f.quote || "Trust is not given — it is earned, stitch by stitch, customer by customer.";
   if (bioEl) bioEl.value = f.biography || "";
 
@@ -1894,18 +1906,22 @@ function handleFounderPhotoFileSelect(e) {
 }
 
 function resetFounderPhoto() {
-  const defaultPhoto = "assets/images/hiramoti_founder_home.jpg";
-  document.getElementById("founder-photo-hidden").value = defaultPhoto;
+  document.getElementById("founder-photo-hidden").value = "";
   const label = document.getElementById("founder-photo-filename-label");
-  if (label) label.textContent = defaultPhoto;
+  if (label) label.textContent = "No photo uploaded (Using Commemorative Memorial Seal)";
   const thumb = document.getElementById("founder-photo-thumb");
-  if (thumb) thumb.src = resolveImageUrl(defaultPhoto);
+  if (thumb) {
+    thumb.src = "../assets/images/favicon.png";
+    thumb.style.objectFit = "contain";
+    thumb.style.padding = "12px";
+    thumb.style.background = "#20040A";
+  }
   const badge = document.getElementById("founder-photo-badge");
   if (badge) {
-    badge.textContent = "Default Photo";
+    badge.textContent = "Memorial Seal";
     badge.className = "badge-cover-source";
   }
-  showToast("Founder photo reset to default", "info");
+  showToast("Founder photo set to Memorial Seal", "info");
 }
 
 function handleMilestoneImageFileSelect(e, idx) {
