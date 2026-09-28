@@ -683,6 +683,19 @@ h1, h2, h3, h4, h5, h6 {
   box-shadow: 0 3px 10px rgba(37, 211, 102, 0.25);
 }
 
+.wa-text-short {
+  display: none;
+}
+
+@media (max-width: 480px) {
+  .wa-text-full {
+    display: none;
+  }
+  .wa-text-short {
+    display: inline;
+  }
+}
+
 .header-actions .btn-whatsapp:hover {
   background: var(--color-whatsapp-dark);
   color: #ffffff !important;
@@ -707,9 +720,36 @@ h1, h2, h3, h4, h5, h6 {
 
 .mobile-toggle {
   display: none;
-  font-size: 1.5rem;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border-radius: 8px;
+  background: rgba(72, 12, 22, 0.08);
+  border: 1.5px solid rgba(197, 155, 39, 0.50);
+  color: var(--color-burgundy);
+  box-shadow: 0 2px 8px rgba(44, 6, 13, 0.08);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+
+.mobile-toggle:hover,
+.mobile-toggle:active {
+  background: rgba(72, 12, 22, 0.16);
+  border-color: var(--color-gold);
   color: var(--color-burgundy-dark);
-  padding: 8px;
+}
+
+.mobile-toggle svg {
+  width: 22px;
+  height: 22px;
+  stroke: currentColor;
+  stroke-width: 2.3;
+  stroke-linecap: round;
+  display: block;
 }
 
 /* Mobile Drawer */
@@ -2921,20 +2961,41 @@ h1, h2, h3, h4, h5, h6 {
     display: none;
   }
   .site-header {
-    height: 68px;
+    height: 70px;
   }
   .header-container {
-    height: 68px;
-    padding: 0 14px;
+    height: 70px;
+    padding: 0 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .brand-logo {
+    margin-right: 0 !important;
+    display: flex;
+    align-items: center;
+  }
+  .brand-logo-img {
+    height: 44px;
+    width: auto;
+    max-width: 160px;
+    object-fit: contain;
   }
   .header-actions {
-    gap: 8px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0;
   }
   .header-actions .btn-whatsapp {
-    height: 36px;
-    padding: 0 12px !important;
-    font-size: 0.80rem !important;
+    height: 40px;
+    padding: 0 14px !important;
+    font-size: 0.82rem !important;
+    font-weight: 700;
     gap: 6px;
+    border-radius: 8px;
+    white-space: nowrap;
+    box-shadow: 0 3px 12px rgba(37, 211, 102, 0.35);
   }
   .brand-emblem {
     width: 36px;
@@ -2954,13 +3015,13 @@ h1, h2, h3, h4, h5, h6 {
     display: none !important;
   }
   .mobile-toggle {
-    display: flex;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
     width: 40px;
     height: 40px;
-    border-radius: var(--radius-sm);
-    background: rgba(72, 12, 22, 0.06);
+    border-radius: 8px;
+    flex-shrink: 0;
   }
   
   /* Hero on Mobile - Zero Gap & Balanced Layout */
@@ -4613,46 +4674,64 @@ h1, h2, h3, h4, h5, h6 {
    FINE-TUNED RESPONSIVENESS & BASELINE ALIGNMENT (<= 430px down to 320px)
    ========================================================================== */
 @media (max-width: 430px) {
+  .header-container {
+    padding: 0 14px;
+  }
   .brand-logo {
-    margin-right: 8px;
+    margin-right: 0 !important;
   }
   .brand-logo-img {
     height: 42px;
-    max-width: 155px;
+    max-width: 150px;
   }
   .header-actions {
-    gap: 6px;
+    gap: 8px;
   }
   .header-actions .btn-whatsapp {
-    height: 35px;
-    padding: 0 10px !important;
-    font-size: 0.76rem !important;
+    height: 38px;
+    padding: 0 11px !important;
+    font-size: 0.78rem !important;
     gap: 5px;
+    border-radius: 8px;
   }
   .mobile-toggle {
-    width: 35px;
-    height: 35px;
-    padding: 6px;
+    width: 38px;
+    height: 38px;
+    padding: 0;
+    border-radius: 8px;
+  }
+  .mobile-toggle svg {
+    width: 20px;
+    height: 20px;
   }
 }
 
-@media (max-width: 350px) {
+@media (max-width: 360px) {
   .header-container {
-    padding: 0 8px;
+    padding: 0 10px;
   }
   .brand-logo-img {
     height: 38px;
     max-width: 130px;
   }
+  .header-actions {
+    gap: 6px;
+  }
   .header-actions .btn-whatsapp {
-    height: 34px;
-    padding: 0 7px !important;
-    font-size: 0.72rem !important;
+    height: 36px;
+    padding: 0 9px !important;
+    font-size: 0.74rem !important;
     gap: 4px;
+    border-radius: 7px;
   }
   .mobile-toggle {
-    width: 34px;
-    height: 34px;
+    width: 36px;
+    height: 36px;
+    border-radius: 7px;
+  }
+  .mobile-toggle svg {
+    width: 19px;
+    height: 19px;
   }
   .footer-qr-img {
     width: 120px;
@@ -4677,6 +4756,22 @@ h1, h2, h3, h4, h5, h6 {
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   transition: background 0.35s ease, border-color 0.35s ease, box-shadow 0.35s ease, height 0.35s ease;
+}
+
+.site-header.cinema-header .mobile-toggle {
+  background: rgba(44, 6, 13, 0.75);
+  border: 1.5px solid rgba(212, 175, 55, 0.70);
+  color: #F8E7C9;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5), inset 0 0 8px rgba(212, 175, 55, 0.15);
+}
+
+.site-header.cinema-header .mobile-toggle:hover,
+.site-header.cinema-header .mobile-toggle:active {
+  background: rgba(212, 175, 55, 0.28);
+  border-color: #E6C56B;
+  color: #FFFFFF;
+  box-shadow: 0 4px 16px rgba(212, 175, 55, 0.4);
+  transform: translateY(-1px);
 }
 
 .site-header.cinema-header.scrolled-cinema {
@@ -5246,6 +5341,68 @@ h1, h2, h3, h4, h5, h6 {
   z-index: 2;
 }
 
+.editorial-heritage-content {
+  text-align: left;
+}
+
+.heritage-eyebrow {
+  color: var(--color-gold-light);
+  display: inline-block;
+  margin-bottom: 8px;
+}
+
+.heritage-title {
+  color: #FFFFFF;
+  font-size: clamp(2rem, 3.5vw, 2.8rem);
+  line-height: 1.25;
+  margin-bottom: 16px;
+}
+
+.heritage-quote-card {
+  margin: 20px 0 24px;
+  padding: 16px 20px;
+  background: rgba(30, 4, 9, 0.65);
+  border-left: 3px solid var(--color-gold);
+  border-radius: var(--radius-sm);
+  text-align: left;
+}
+
+.heritage-quote-text {
+  font-family: var(--font-serif);
+  font-size: 1.15rem;
+  font-style: italic;
+  color: var(--color-gold-pale);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.heritage-quote-author {
+  font-size: 0.8rem;
+  color: var(--color-gold);
+  margin-top: 6px;
+  display: block;
+}
+
+.heritage-body-p {
+  font-size: 0.96rem;
+  color: rgba(255, 245, 235, 0.90);
+  line-height: 1.7;
+  margin-bottom: 16px;
+}
+
+.heritage-body-sub {
+  font-size: 0.92rem;
+  color: rgba(255, 245, 235, 0.78);
+  line-height: 1.65;
+  margin-bottom: 28px;
+}
+
+.heritage-btn-group {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
 .founder-cinema-frame {
   position: relative;
   border-radius: var(--radius-md);
@@ -5290,7 +5447,7 @@ h1, h2, h3, h4, h5, h6 {
 /* 5. Showroom Cinema Experience Section */
 .showroom-cinema-section {
   position: relative;
-  padding: 100px 0;
+  padding: 70px 0 54px;
   overflow: hidden;
   background-color: #120104;
   border-bottom: 2px solid rgba(197, 155, 39, 0.35);
@@ -5379,7 +5536,7 @@ h1, h2, h3, h4, h5, h6 {
     object-position: 68% center;
   }
   .hero-cinema-content-wrap {
-    padding-top: calc(var(--header-height) + 14px);
+    padding-top: calc(var(--header-height) + 58px);
     padding-bottom: 12px;
   }
   .hero-cinema-content {
@@ -5388,9 +5545,13 @@ h1, h2, h3, h4, h5, h6 {
   }
   .hero-cinema-badge {
     font-size: 0.72rem;
-    padding: 5px 12px;
-    margin-bottom: 10px;
+    padding: 5px 14px;
+    margin-top: 0;
+    margin-bottom: 14px;
     justify-content: center;
+    max-width: 100%;
+    box-sizing: border-box;
+    white-space: nowrap;
   }
   .hero-cinema-title {
     font-size: 2.15rem;
@@ -5430,15 +5591,30 @@ h1, h2, h3, h4, h5, h6 {
     font-weight: 600;
   }
 
-  /* Sound toggle placed neatly in top right away from actions & bottom strip */
+  /* Sound toggle placed neatly in dedicated top right slot above hero content */
   .hero-video-controls-wrap {
-    top: calc(var(--header-height) + 12px);
+    top: calc(var(--header-height) + 8px);
     bottom: auto;
-    right: 14px;
-    z-index: 6;
+    right: 16px;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    gap: 8px;
   }
   .hero-live-badge {
     display: none;
+  }
+  .video-sound-toggle-luxury {
+    width: 36px;
+    height: 36px;
+    background: rgba(26, 3, 7, 0.85);
+    border: 1.5px solid rgba(212, 175, 55, 0.65);
+    color: #F8E7C9;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.6);
+  }
+  .video-sound-toggle-luxury svg {
+    width: 17px;
+    height: 17px;
   }
 
   /* CENTERED "39+ YEARS OF TRUST IN SATARA" BOTTOM STRIP WITH TIGHT GAP */
@@ -5495,6 +5671,66 @@ h1, h2, h3, h4, h5, h6 {
   .editorial-card-featured .editorial-title {
     font-size: 1.55rem;
   }
+  /* Center align founder heritage story on mobile */
+  .editorial-heritage-section {
+    padding: 44px 0 38px;
+  }
+  .editorial-heritage-grid {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+  .editorial-heritage-content {
+    text-align: center;
+  }
+  .heritage-eyebrow {
+    display: block;
+    text-align: center;
+    margin: 0 auto 8px auto;
+  }
+  .heritage-title {
+    text-align: center;
+    font-size: clamp(1.65rem, 5.5vw, 2.15rem);
+  }
+  .heritage-quote-card {
+    text-align: center;
+    border-left: 3px solid var(--color-gold);
+    border-right: 3px solid var(--color-gold);
+    margin: 18px auto 22px auto;
+    padding: 16px 20px;
+    max-width: 480px;
+  }
+  .heritage-quote-text {
+    text-align: center;
+  }
+  .heritage-quote-author {
+    text-align: center;
+  }
+  .heritage-body-p {
+    text-align: center;
+    max-width: 520px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .heritage-btn-group {
+    justify-content: center;
+  }
+
+  /* Compact showroom cinema section to eliminate unnecessary space above footer */
+  .showroom-cinema-section {
+    padding: 38px 0 20px;
+  }
+  .showroom-cinema-content .section-title {
+    font-size: clamp(1.75rem, 5.5vw, 2.2rem);
+    margin-bottom: 12px;
+  }
+  .showroom-cinema-content p {
+    font-size: 0.94rem;
+    line-height: 1.6;
+    margin-bottom: 22px;
+  }
+  .showroom-actions {
+    gap: 10px;
+  }
 }
 
 @media (max-width: 430px) {
@@ -5506,6 +5742,13 @@ h1, h2, h3, h4, h5, h6 {
   }
   .strip-stat-item .stat-label {
     font-size: 0.74rem;
+  }
+  .showroom-cinema-section {
+    padding: 32px 0 16px;
+  }
+  .showroom-actions .btn {
+    width: 100%;
+    max-width: 320px;
   }
 }
 
