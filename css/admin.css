@@ -2119,3 +2119,13 @@ body.admin-body {
     grid-template-columns: 1fr;
   }
 }
+
+.badge-super-admin {
+  background: linear-gradient(135deg, rgba(212, 175, 55, 0.25), rgba(243, 230, 179, 0.35));
+  color: #facc15 !important;
+  border: 1px solid rgba(212, 175, 55, 0.5);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+

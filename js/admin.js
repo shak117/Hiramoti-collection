@@ -4,6 +4,23 @@
  * Inline Stock & Price Editing, Image Manager, and Reels Management.
  */
 
+// Dynamic API origin determination:
+// If page is loaded via file:/// or an alternate port/server, point to Flask backend at http://localhost:5000
+const API_BASE = (window.location.protocol === "file:" || (!window.location.host.includes(":5000") && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1" || !window.location.port)))
+  ? "http://localhost:5000"
+  : "";
+
+// Global Fetch Interceptor to rewrite relative /api/ endpoints to backend and attach session credentials
+const _nativeFetch = window.fetch;
+window.fetch = function(input, init = {}) {
+  let url = input;
+  if (typeof input === "string" && input.startsWith("/api/")) {
+    url = API_BASE + input;
+  }
+  init.credentials = init.credentials || "include";
+  return _nativeFetch.call(this, url, init);
+};
+
 let currentUser = null;
 let cachedProducts = [];
 let cachedReels = [];
@@ -48,6 +65,22 @@ function showDashboardUI() {
   if (currentUser) {
     const nameEl = document.getElementById("user-display-name");
     if (nameEl) nameEl.textContent = currentUser.username || "Admin";
+
+    const roleBadge = document.getElementById("user-role-badge");
+    if (roleBadge) {
+      if (currentUser.role === "super_admin" || currentUser.role === "superadmin") {
+        roleBadge.textContent = "Super Admin";
+        roleBadge.className = "user-role badge-super-admin";
+      } else {
+        roleBadge.textContent = "Admin";
+        roleBadge.className = "user-role";
+      }
+    }
+
+    const avatarEl = document.getElementById("user-avatar-initials");
+    if (avatarEl && currentUser.username) {
+      avatarEl.textContent = currentUser.username.substring(0, 2).toUpperCase();
+    }
   }
 
   // Load all initial data
@@ -93,7 +126,10 @@ async function handleAdminLogin(e) {
       alertEl.style.display = "block";
     }
   } catch (err) {
-    alertEl.textContent = "Connection error. Please try again.";
+    console.error("Login fetch error:", err);
+    alertEl.innerHTML = `<strong>Backend Server Connection Failed</strong><br>
+      The Hiramoti Python Flask server is not reachable on <span style="font-family:monospace;color:#facc15;">http://localhost:5000</span>.<br>
+      Please start the server by running <code style="padding:2px 6px;background:rgba(0,0,0,0.5);border-radius:4px;color:#facc15;">START_SERVER.bat</code> or <code style="padding:2px 6px;background:rgba(0,0,0,0.5);border-radius:4px;color:#facc15;">python app.py</code> and then refresh.`;
     alertEl.style.display = "block";
   } finally {
     btn.disabled = false;

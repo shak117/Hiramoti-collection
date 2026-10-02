@@ -30,9 +30,21 @@ def init_db():
             email TEXT UNIQUE NOT NULL,
             password_hash TEXT NOT NULL,
             role TEXT DEFAULT 'admin',
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            is_active INTEGER DEFAULT 1,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
+
+    # Non-destructive migrations for existing admin_users table
+    try:
+        cursor.execute("ALTER TABLE admin_users ADD COLUMN is_active INTEGER DEFAULT 1")
+    except sqlite3.OperationalError:
+        pass
+    try:
+        cursor.execute("ALTER TABLE admin_users ADD COLUMN updated_at TIMESTAMP")
+    except sqlite3.OperationalError:
+        pass
 
     # 2. Products table
     cursor.execute("""
@@ -138,15 +150,32 @@ def init_db():
 
     conn.commit()
 
-    # Seed Admin User if none exists
-    cursor.execute("SELECT COUNT(*) FROM admin_users")
-    if cursor.fetchone()[0] == 0:
-        default_pwd_hash = generate_password_hash("Hiramoti@1987", method="pbkdf2:sha256")
+    # Seed or verify Admin & Super Admin users
+    default_pwd_hash = generate_password_hash("Hiramoti@1987", method="pbkdf2:sha256")
+    
+    # 1. Admin user
+    row_admin = cursor.execute("SELECT id FROM admin_users WHERE username = 'admin' OR email = 'admin@hiramoti.com'").fetchone()
+    if not row_admin:
         cursor.execute("""
-            INSERT INTO admin_users (username, email, password_hash, role)
-            VALUES (?, ?, ?, ?)
-        """, ("admin", "admin@hiramoti.com", default_pwd_hash, "superadmin"))
+            INSERT INTO admin_users (username, email, password_hash, role, is_active)
+            VALUES (?, ?, ?, ?, 1)
+        """, ("admin", "admin@hiramoti.com", default_pwd_hash, "admin"))
         print("[DB] Initialized default admin user (admin@hiramoti.com)")
+    else:
+        cursor.execute("UPDATE admin_users SET is_active = 1, password_hash = ? WHERE id = ?", (default_pwd_hash, row_admin[0]))
+
+    # 2. Super Admin user
+    row_super = cursor.execute("SELECT id FROM admin_users WHERE username = 'superadmin' OR email = 'superadmin@hiramoti.com'").fetchone()
+    if not row_super:
+        cursor.execute("""
+            INSERT INTO admin_users (username, email, password_hash, role, is_active)
+            VALUES (?, ?, ?, ?, 1)
+        """, ("superadmin", "superadmin@hiramoti.com", default_pwd_hash, "super_admin"))
+        print("[DB] Initialized super admin user (superadmin@hiramoti.com)")
+    else:
+        cursor.execute("UPDATE admin_users SET is_active = 1, role = 'super_admin', password_hash = ? WHERE id = ?", (default_pwd_hash, row_super[0]))
+
+    conn.commit()
 
     # Seed Products if none exists
     cursor.execute("SELECT COUNT(*) FROM products")

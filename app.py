@@ -52,11 +52,31 @@ otp_security_store = {
 app = Flask(__name__, static_folder=None)
 app.secret_key = os.environ.get("HIRAMOTI_SECRET_KEY", "hiramoti-satara-royal-secret-key-1987-secure")
 app.config["MAX_CONTENT_LENGTH"] = MAX_CONTENT_LENGTH
+app.config["SESSION_COOKIE_HTTPONLY"] = True
+app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+app.config["SESSION_COOKIE_SECURE"] = False  # Set to True when HTTPS is enabled
+app.config["PERMANENT_SESSION_LIFETIME"] = 604800  # 7 days
 
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 # Ensure DB is initialized
 init_db()
+
+@app.after_request
+def add_cors_headers(response):
+    origin = request.headers.get("Origin")
+    if origin:
+        response.headers["Access-Control-Allow-Origin"] = origin
+    else:
+        response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Credentials"] = "true"
+    response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization, X-Requested-With"
+    response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS"
+    return response
+
+@app.route("/api/<path:subpath>", methods=["OPTIONS"])
+def handle_options_request(subpath):
+    return "", 204
 
 
 # ---------------------------------------------------------------------------
@@ -67,6 +87,20 @@ def admin_required(f):
     def decorated_function(*args, **kwargs):
         if "user_id" not in session:
             return jsonify({"error": "Unauthorized. Please log in as admin."}), 401
+        role = session.get("role", "")
+        if role not in ("admin", "super_admin", "superadmin"):
+            return jsonify({"error": "Forbidden. Insufficient permissions."}), 403
+        return f(*args, **kwargs)
+    return decorated_function
+
+def super_admin_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if "user_id" not in session:
+            return jsonify({"error": "Unauthorized. Please log in as super admin."}), 401
+        role = session.get("role", "")
+        if role not in ("super_admin", "superadmin"):
+            return jsonify({"error": "Forbidden. Super admin privileges required."}), 403
         return f(*args, **kwargs)
     return decorated_function
 
@@ -97,6 +131,13 @@ def parse_instagram_url(url):
 @app.route("/admin")
 @app.route("/admin/")
 def admin_root():
+    if "user_id" in session:
+        return redirect("/admin/dashboard")
+    return redirect("/admin/login")
+
+@app.route("/super-admin")
+@app.route("/super-admin/")
+def super_admin_root():
     if "user_id" in session:
         return redirect("/admin/dashboard")
     return redirect("/admin/login")
@@ -141,6 +182,10 @@ def api_admin_login():
     if not user or not check_password_hash(user["password_hash"], password):
         return jsonify({"error": "Invalid username or password"}), 401
 
+    if dict(user).get("is_active", 1) == 0:
+        return jsonify({"error": "Account is inactive. Please contact the administrator."}), 403
+
+    session.permanent = True
     session["user_id"] = user["id"]
     session["username"] = user["username"]
     session["email"] = user["email"]
@@ -174,6 +219,17 @@ def api_admin_me():
             "email": session.get("email"),
             "role": session.get("role")
         }
+    })
+
+@app.route("/api/admin/users", methods=["GET"])
+@admin_required
+def api_admin_list_users():
+    conn = get_db_connection()
+    rows = conn.execute("SELECT id, username, email, role, is_active, created_at FROM admin_users ORDER BY id ASC").fetchall()
+    conn.close()
+    return jsonify({
+        "success": True,
+        "users": [dict(r) for r in rows]
     })
 
 def send_sms_otp(phone, otp_code):
@@ -1155,4 +1211,4 @@ if __name__ == "__main__":
     print(f" Public Website: http://localhost:{port}/")
     print(f" Admin Dashboard: http://localhost:{port}/admin")
     print(f"==================================================")
-    app.run(host="0.0.0.0", port=port, debug=False)
+    app.run(host="0.0.0.0", port=port, debug=False, threaded=True)
