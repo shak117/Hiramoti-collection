@@ -2799,6 +2799,31 @@ h1, h2, h3, h4, h5, h6 {
   font-size: 0.7rem;
 }
 
+.footer-admin-link {
+  color: rgba(212, 175, 55, 0.85) !important;
+  font-weight: 500;
+  transition: all var(--transition-fast);
+}
+
+.footer-admin-link:hover {
+  color: var(--color-gold-light) !important;
+  text-decoration: underline;
+}
+
+.footer-superadmin-link {
+  color: var(--color-gold) !important;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  transition: all var(--transition-fast);
+}
+
+.footer-superadmin-link:hover {
+  color: #fff !important;
+  text-shadow: 0 0 8px rgba(212, 175, 55, 0.8);
+  text-decoration: underline;
+}
+
+
 .developer-credit {
   display: inline-flex;
   align-items: center;

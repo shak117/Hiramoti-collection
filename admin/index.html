@@ -21,9 +21,20 @@
         <div class="login-logo">
           <img src="../assets/images/hiramoti_header_logo.png" alt="Hiramoti Collection Satara">
         </div>
-        <div class="login-badge">Institutional Admin CMS</div>
-        <h2>Store Administration</h2>
-        <p>Sign in to manage products, stock, prices, reels, and showroom appointments.</p>
+        <div class="login-badge" id="login-role-badge">Institutional Admin CMS</div>
+        <h2 id="login-role-title">Store Administration</h2>
+        <p id="login-role-desc">Sign in to manage products, stock, prices, reels, and showroom appointments.</p>
+        
+        <div class="role-selector-pills" role="tablist" aria-label="Select Login Role">
+          <button type="button" class="role-pill active" id="pill-role-admin" onclick="switchLoginRole('admin')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13" style="vertical-align:-2px;margin-right:4px;"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
+            Admin
+          </button>
+          <button type="button" class="role-pill" id="pill-role-superadmin" onclick="switchLoginRole('super_admin')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13" style="vertical-align:-2px;margin-right:4px;"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            Super Admin
+          </button>
+        </div>
       </div>
 
       <div id="login-alert" class="admin-alert admin-alert-danger" style="display: none;"></div>

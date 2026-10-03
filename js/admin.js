@@ -56,6 +56,60 @@ async function checkAuthStatus() {
 function showLoginUI() {
   document.getElementById("login-view").style.display = "flex";
   document.getElementById("dashboard-view").style.display = "none";
+  checkRoleUrlParam();
+}
+
+function switchLoginRole(role) {
+  const usernameInput = document.getElementById("login-username");
+  const passwordInput = document.getElementById("login-password");
+  const badge = document.getElementById("login-role-badge");
+  const title = document.getElementById("login-role-title");
+  const desc = document.getElementById("login-role-desc");
+  const pillAdmin = document.getElementById("pill-role-admin");
+  const pillSuper = document.getElementById("pill-role-superadmin");
+
+  if (role === "super_admin" || role === "superadmin") {
+    if (pillSuper) pillSuper.classList.add("active");
+    if (pillAdmin) pillAdmin.classList.remove("active");
+    if (usernameInput) usernameInput.value = "superadmin@hiramoti.com";
+    if (badge) {
+      badge.textContent = "Super Admin Console";
+      badge.style.borderColor = "rgba(212, 175, 55, 0.7)";
+      badge.style.color = "#facc15";
+    }
+    if (title) title.textContent = "Super Admin Sign In";
+    if (desc) desc.textContent = "Enter your Super Admin credentials to access master controls and settings.";
+  } else {
+    if (pillAdmin) pillAdmin.classList.add("active");
+    if (pillSuper) pillSuper.classList.remove("active");
+    if (usernameInput) usernameInput.value = "admin@hiramoti.com";
+    if (badge) {
+      badge.textContent = "Institutional Admin CMS";
+      badge.style.borderColor = "";
+      badge.style.color = "";
+    }
+    if (title) title.textContent = "Store Administration";
+    if (desc) desc.textContent = "Sign in to manage products, stock, prices, reels, and showroom appointments.";
+  }
+
+  if (passwordInput) {
+    passwordInput.value = "";
+    passwordInput.focus();
+  }
+}
+
+function checkRoleUrlParam() {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const roleParam = (params.get("role") || "").toLowerCase().trim();
+    if (roleParam === "super_admin" || roleParam === "superadmin") {
+      switchLoginRole("super_admin");
+    } else if (roleParam === "admin") {
+      switchLoginRole("admin");
+    }
+  } catch (err) {
+    console.warn("Role URL param check error:", err);
+  }
 }
 
 function showDashboardUI() {

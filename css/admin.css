@@ -2129,3 +2129,44 @@ body.admin-body {
   letter-spacing: 0.5px;
 }
 
+/* Role Selector Pills on Login Screen */
+.role-selector-pills {
+  display: flex;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(212, 175, 55, 0.25);
+  border-radius: 30px;
+  padding: 4px;
+  margin: 16px auto 0 auto;
+  max-width: 280px;
+  gap: 4px;
+}
+
+.role-pill {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.7);
+  font-family: var(--font-sans);
+  font-size: 0.8rem;
+  font-weight: 500;
+  padding: 6px 12px;
+  border-radius: 25px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.role-pill:hover {
+  color: var(--color-gold);
+}
+
+.role-pill.active {
+  background: linear-gradient(135deg, var(--color-gold), #b38728);
+  color: #1a080c;
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(212, 175, 55, 0.35);
+}
+
+
