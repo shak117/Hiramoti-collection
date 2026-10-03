@@ -82,12 +82,44 @@ def handle_options_request(subpath):
 # ---------------------------------------------------------------------------
 # Helper Decorators & Functions
 # ---------------------------------------------------------------------------
+# In-memory active tokens store: token -> {user_id, username, email, role, created_at}
+active_tokens = {}
+
+def get_current_user():
+    """Returns authenticated user object from Flask session or Authorization Bearer header."""
+    if "user_id" in session:
+        return {
+            "id": session.get("user_id"),
+            "user_id": session.get("user_id"),
+            "username": session.get("username"),
+            "email": session.get("email"),
+            "role": session.get("role")
+        }
+    auth_header = request.headers.get("Authorization", "")
+    if auth_header.startswith("Bearer "):
+        token = auth_header[7:].strip()
+        if token in active_tokens:
+            info = active_tokens[token]
+            # Valid for 7 days
+            if time.time() - info.get("created_at", 0) < 7 * 86400:
+                return {
+                    "id": info.get("user_id"),
+                    "user_id": info.get("user_id"),
+                    "username": info.get("username"),
+                    "email": info.get("email"),
+                    "role": info.get("role")
+                }
+            else:
+                del active_tokens[token]
+    return None
+
 def admin_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        if "user_id" not in session:
+        user = get_current_user()
+        if not user:
             return jsonify({"error": "Unauthorized. Please log in as admin."}), 401
-        role = session.get("role", "")
+        role = user.get("role", "")
         if role not in ("admin", "super_admin", "superadmin"):
             return jsonify({"error": "Forbidden. Insufficient permissions."}), 403
         return f(*args, **kwargs)
@@ -96,9 +128,10 @@ def admin_required(f):
 def super_admin_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        if "user_id" not in session:
+        user = get_current_user()
+        if not user:
             return jsonify({"error": "Unauthorized. Please log in as super admin."}), 401
-        role = session.get("role", "")
+        role = user.get("role", "")
         if role not in ("super_admin", "superadmin"):
             return jsonify({"error": "Forbidden. Super admin privileges required."}), 403
         return f(*args, **kwargs)
@@ -185,6 +218,15 @@ def api_admin_login():
     if dict(user).get("is_active", 1) == 0:
         return jsonify({"error": "Account is inactive. Please contact the administrator."}), 403
 
+    token = secrets.token_urlsafe(32)
+    active_tokens[token] = {
+        "user_id": user["id"],
+        "username": user["username"],
+        "email": user["email"],
+        "role": user["role"],
+        "created_at": time.time()
+    }
+
     session.permanent = True
     session["user_id"] = user["id"]
     session["username"] = user["username"]
@@ -194,6 +236,7 @@ def api_admin_login():
     return jsonify({
         "success": True,
         "message": "Login successful",
+        "token": token,
         "user": {
             "id": user["id"],
             "username": user["username"],
@@ -204,21 +247,21 @@ def api_admin_login():
 
 @app.route("/api/admin/logout", methods=["POST"])
 def api_admin_logout():
+    auth_header = request.headers.get("Authorization", "")
+    if auth_header.startswith("Bearer "):
+        token = auth_header[7:].strip()
+        active_tokens.pop(token, None)
     session.clear()
     return jsonify({"success": True, "message": "Logged out successfully"})
 
 @app.route("/api/admin/me", methods=["GET"])
 def api_admin_me():
-    if "user_id" not in session:
+    user = get_current_user()
+    if not user:
         return jsonify({"authenticated": False}), 401
     return jsonify({
         "authenticated": True,
-        "user": {
-            "id": session.get("user_id"),
-            "username": session.get("username"),
-            "email": session.get("email"),
-            "role": session.get("role")
-        }
+        "user": user
     })
 
 @app.route("/api/admin/users", methods=["GET"])
@@ -276,11 +319,17 @@ def send_sms_otp(phone, otp_code):
     return True
 
 
+# ---------------------------------------------------------------------------
+# Password Management & OTP Verification Endpoints
+# ---------------------------------------------------------------------------
+
+@app.route("/api/admin/forgot-password/request", methods=["POST"])
 @app.route("/api/admin/otp/request", methods=["POST"])
-@admin_required
 def api_admin_request_otp():
     """Generates cryptographically random 6-digit OTP and sends to registered mobile number."""
     now = time.time()
+    data = request.get_json() or {}
+    identifier = data.get("identifier", "").strip() or data.get("username", "").strip()
     
     # Rate limit: enforce 30 seconds cooldown between resend requests
     last_sent = otp_security_store.get("last_sent_at", 0)
@@ -292,6 +341,21 @@ def api_admin_request_otp():
             "cooldown_remaining": wait_seconds
         }), 429
 
+    # Look up user if identifier provided
+    target_user_id = None
+    if identifier:
+        conn = get_db_connection()
+        user = conn.execute(
+            "SELECT id, username, email FROM admin_users WHERE username = ? OR email = ?",
+            (identifier, identifier)
+        ).fetchone()
+        conn.close()
+        if user:
+            target_user_id = user["id"]
+    else:
+        # Default to primary admin id 1
+        target_user_id = 1
+
     # Generate 6-digit cryptographic OTP
     raw_otp = "".join(secrets.choice(string.digits) for _ in range(6))
     
@@ -301,6 +365,7 @@ def api_admin_request_otp():
     otp_security_store["attempts"] = 0
     otp_security_store["last_sent_at"] = now
     otp_security_store["reset_token"] = None
+    otp_security_store["user_id"] = target_user_id
 
     # Dispatch via SMS provider
     send_sms_otp(ADMIN_REGISTERED_PHONE, raw_otp)
@@ -314,8 +379,8 @@ def api_admin_request_otp():
     })
 
 
+@app.route("/api/admin/forgot-password/verify", methods=["POST"])
 @app.route("/api/admin/otp/verify", methods=["POST"])
-@admin_required
 def api_admin_verify_otp():
     """Verifies entered 6-digit OTP against cryptographic hash."""
     data = request.get_json() or {}
@@ -356,22 +421,22 @@ def api_admin_verify_otp():
     })
 
 
-@app.route("/api/admin/change-password", methods=["POST"])
-@admin_required
-def api_admin_change_password():
-    """Updates admin password only after verified mobile OTP session."""
+@app.route("/api/admin/forgot-password/reset", methods=["POST"])
+def api_admin_forgot_password_reset():
+    """Resets password using single-use reset token from verified OTP."""
     data = request.get_json() or {}
     reset_token = data.get("reset_token", "").strip()
     new_pwd = data.get("new_password", "").strip()
     confirm_pwd = data.get("confirm_password", "").strip()
 
-    # Verify reset token from OTP step
     now = time.time()
     valid_token = otp_security_store.get("reset_token")
     token_expires = otp_security_store.get("token_expires_at", 0)
 
     if not reset_token or reset_token != valid_token or now > token_expires:
-        return jsonify({"error": "Unauthorized: Verified mobile OTP session required to change password."}), 403
+        return jsonify({"error": "Unauthorized: Valid OTP reset token required."}), 403
+
+    target_user_id = otp_security_store.get("user_id") or 1
 
     if not new_pwd or not confirm_pwd:
         return jsonify({"error": "Both new password and confirmation are required."}), 400
@@ -382,20 +447,82 @@ def api_admin_change_password():
     if new_pwd != confirm_pwd:
         return jsonify({"error": "New password and confirmation do not match."}), 400
 
-    # Reject trivial / weak passwords
     weak_patterns = ["password", "12345678", "admin123", "hiramoti123", "qwertyuiop"]
     if new_pwd.lower() in weak_patterns:
-        return jsonify({"error": "Password is too weak. Please use a combination of letters, numbers, or symbols."}), 400
+        return jsonify({"error": "Password is too weak. Please use letters, numbers, and symbols."}), 400
 
-    # Securely hash and update in database
     new_hash = generate_password_hash(new_pwd, method="pbkdf2:sha256")
     conn = get_db_connection()
-    conn.execute("UPDATE admin_users SET password_hash = ? WHERE id = ?", (new_hash, session["user_id"]))
+    conn.execute("UPDATE admin_users SET password_hash = ? WHERE id = ?", (new_hash, target_user_id))
     conn.commit()
     conn.close()
 
     # Invalidate reset token and session
     otp_security_store["reset_token"] = None
+    session.clear()
+
+    return jsonify({
+        "success": True,
+        "message": "Password updated successfully. Please log in with your new password."
+    })
+
+
+@app.route("/api/admin/change-password", methods=["POST"])
+def api_admin_change_password():
+    """Handles both in-session password change (with current password) or OTP reset (with reset token)."""
+    data = request.get_json() or {}
+    reset_token = data.get("reset_token", "").strip()
+    current_pwd = data.get("current_password", "").strip()
+    new_pwd = data.get("new_password", "").strip()
+    confirm_pwd = data.get("confirm_password", "").strip()
+
+    if not new_pwd or not confirm_pwd:
+        return jsonify({"error": "Both new password and confirmation are required."}), 400
+
+    if len(new_pwd) < 8:
+        return jsonify({"error": "New password must be at least 8 characters long."}), 400
+
+    if new_pwd != confirm_pwd:
+        return jsonify({"error": "New password and confirmation do not match."}), 400
+
+    weak_patterns = ["password", "12345678", "admin123", "hiramoti123", "qwertyuiop"]
+    if new_pwd.lower() in weak_patterns:
+        return jsonify({"error": "Password is too weak. Please use letters, numbers, and symbols."}), 400
+
+    target_user_id = None
+
+    # Case 1: OTP reset token provided
+    if reset_token:
+        now = time.time()
+        valid_token = otp_security_store.get("reset_token")
+        token_expires = otp_security_store.get("token_expires_at", 0)
+        if reset_token != valid_token or now > token_expires:
+            return jsonify({"error": "Invalid or expired reset token. Please request a new OTP."}), 403
+        target_user_id = otp_security_store.get("user_id") or 1
+        otp_security_store["reset_token"] = None
+    # Case 2: In-session password change
+    else:
+        user = get_current_user()
+        if not user:
+            return jsonify({"error": "Unauthorized. Please log in or provide reset token."}), 401
+        target_user_id = user["id"]
+
+        if not current_pwd:
+            return jsonify({"error": "Current password is required to change password."}), 400
+
+        conn = get_db_connection()
+        db_user = conn.execute("SELECT password_hash FROM admin_users WHERE id = ?", (target_user_id,)).fetchone()
+        conn.close()
+
+        if not db_user or not check_password_hash(db_user["password_hash"], current_pwd):
+            return jsonify({"error": "Current password is incorrect."}), 400
+
+    new_hash = generate_password_hash(new_pwd, method="pbkdf2:sha256")
+    conn = get_db_connection()
+    conn.execute("UPDATE admin_users SET password_hash = ? WHERE id = ?", (new_hash, target_user_id))
+    conn.commit()
+    conn.close()
+
     session.clear()
 
     return jsonify({

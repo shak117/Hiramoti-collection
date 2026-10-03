@@ -10,14 +10,33 @@ const API_BASE = (window.location.protocol === "file:" || (!window.location.host
   ? "http://localhost:5000"
   : "";
 
-// Global Fetch Interceptor to rewrite relative /api/ endpoints to backend and attach session credentials
+// Global Fetch Interceptor to rewrite relative /api/ endpoints to backend and attach session credentials + Bearer token
 const _nativeFetch = window.fetch;
 window.fetch = function(input, init = {}) {
   let url = input;
   if (typeof input === "string" && input.startsWith("/api/")) {
     url = API_BASE + input;
   }
+  init = Object.assign({}, init);
   init.credentials = init.credentials || "include";
+
+  const token = localStorage.getItem("hm_admin_token");
+  if (token) {
+    if (!init.headers) {
+      init.headers = { "Authorization": "Bearer " + token };
+    } else if (init.headers instanceof Headers) {
+      if (!init.headers.has("Authorization")) {
+        init.headers.set("Authorization", "Bearer " + token);
+      }
+    } else if (Array.isArray(init.headers)) {
+      init.headers.push(["Authorization", "Bearer " + token]);
+    } else {
+      if (!init.headers["Authorization"]) {
+        init.headers["Authorization"] = "Bearer " + token;
+      }
+    }
+  }
+
   return _nativeFetch.call(this, url, init);
 };
 
@@ -46,6 +65,8 @@ async function checkAuthStatus() {
         showDashboardUI();
         return;
       }
+    } else {
+      localStorage.removeItem("hm_admin_token");
     }
   } catch (e) {
     console.warn("Auth check error:", e);
@@ -172,6 +193,9 @@ async function handleAdminLogin(e) {
 
     const data = await res.json();
     if (res.ok && data.success) {
+      if (data.token) {
+        localStorage.setItem("hm_admin_token", data.token);
+      }
       currentUser = data.user;
       showToast("Welcome back, " + currentUser.username + "!", "success");
       showDashboardUI();
@@ -196,6 +220,7 @@ async function handleAdminLogout() {
   try {
     await fetch("/api/admin/logout", { method: "POST" });
   } catch (e) {}
+  localStorage.removeItem("hm_admin_token");
   currentUser = null;
   showToast("Logged out successfully.", "info");
   showLoginUI();

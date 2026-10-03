@@ -1,0 +1,110 @@
+{
+  "docW": 489,
+  "bad": [
+    {
+      "tag": "ASIDE",
+      "id": "",
+      "cls": "mobile-drawer",
+      "right": 978,
+      "width": 380
+    },
+    {
+      "tag": "DIV",
+      "id": "",
+      "cls": "drawer-header",
+      "right": 933,
+      "width": 305
+    },
+    {
+      "tag": "A",
+      "id": "",
+      "cls": "brand-logo drawer-brand",
+      "right": 676,
+      "width": 48
+    },
+    {
+      "tag": "IMG",
+      "id": "",
+      "cls": "brand-logo-img drawer-logo-img",
+      "right": 676,
+      "width": 48
+    },
+    {
+      "tag": "BUTTON",
+      "id": "",
+      "cls": "drawer-close",
+      "right": 933,
+      "width": 17
+    },
+    {
+      "tag": "NAV",
+      "id": "",
+      "cls": "drawer-nav",
+      "right": 933,
+      "width": 305
+    },
+    {
+      "tag": "A",
+      "id": "",
+      "cls": "nav-link ",
+      "right": 933,
+      "width": 305
+    },
+    {
+      "tag": "DIV",
+      "id": "",
+      "cls": "",
+      "right": 933,
+      "width": 305
+    },
+    {
+      "tag": "A",
+      "id": "",
+      "cls": "nav-link ",
+      "right": 725,
+      "width": 97
+    },
+    {
+      "tag": "DIV",
+      "id": "",
+      "cls": "drawer-sublinks",
+      "right": 933,
+      "width": 305
+    },
+    {
+      "tag": "A",
+      "id": "",
+      "cls": "drawer-sublink",
+      "right": 933,
+      "width": 285
+    },
+    {
+      "tag": "A",
+      "id": "",
+      "cls": "drawer-sublink",
+      "right": 933,
+      "width": 285
+    },
+    {
+      "tag": "A",
+      "id": "",
+      "cls": "drawer-sublink",
+      "right": 933,
+      "width": 285
+    },
+    {
+      "tag": "A",
+      "id": "",
+      "cls": "drawer-sublink",
+      "right": 933,
+      "width": 285
+    },
+    {
+      "tag": "A",
+      "id": "",
+      "cls": "drawer-sublink",
+      "right": 933,
+      "width": 285
+    }
+  ]
+}

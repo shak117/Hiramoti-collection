@@ -44,7 +44,7 @@
           <label for="login-username">Admin Email / Username</label>
           <div class="input-with-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-            <input type="text" id="login-username" class="form-control" placeholder="admin@hiramoti.com" required autocomplete="username">
+            <input type="text" name="username" id="login-username" class="form-control" placeholder="admin@hiramoti.com" required autocomplete="username">
           </div>
         </div>
 
@@ -52,18 +52,19 @@
           <label for="login-password">Password</label>
           <div class="input-with-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-            <input type="password" id="login-password" class="form-control" placeholder="••••••••••••" required autocomplete="current-password">
+            <input type="password" name="password" id="login-password" class="form-control" placeholder="••••••••••••" required autocomplete="current-password">
             <button type="button" class="btn-toggle-pwd" onclick="togglePasswordVisibility('login-password')" aria-label="Toggle password visibility">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
             </button>
           </div>
         </div>
 
-        <div class="form-row-remember">
-          <label class="checkbox-label">
+        <div class="form-row-remember" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px;">
+          <label class="checkbox-label" style="margin-bottom: 0;">
             <input type="checkbox" id="remember-me" checked>
-            <span>Stay signed in on this device</span>
+            <span>Stay signed in</span>
           </label>
+          <button type="button" class="btn-link" style="color: var(--color-gold); font-size: 0.82rem; background: none; border: none; cursor: pointer; text-decoration: underline;" onclick="openForgotPasswordModal()">Forgot Password?</button>
         </div>
 
         <button type="submit" id="btn-login-submit" class="btn btn-gold btn-block">
@@ -558,30 +559,73 @@
         <section id="section-settings" class="admin-section">
           <div class="dashboard-grid">
             
-            <!-- Secure Mobile OTP Password Verification -->
+            <!-- Admin Security & Password Management -->
             <div class="dashboard-panel">
               <div class="panel-header">
                 <h3>Admin Security & Password</h3>
-              </div>
-              <div id="pwd-alert" class="admin-alert admin-alert-success" style="display: none;"></div>
-
-              <!-- STEP 1: Request OTP via Registered Mobile -->
-              <div id="otp-step-1" class="otp-wizard-step active">
-                <p style="font-size: 0.86rem; color: rgba(255,255,255,0.85); line-height: 1.5; margin-bottom: 16px;">
-                  To protect store operations, password changes require multi-factor verification via your registered admin mobile number.
-                </p>
-                <div class="otp-phone-display">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-                  <div>
-                    <span style="font-size: 0.72rem; color: var(--color-gold-light); display: block; text-transform: uppercase;">Registered Admin Mobile</span>
-                    <strong>+91 ******5454</strong>
-                  </div>
+                <div class="tab-button-group" style="display: flex; gap: 8px;">
+                  <button type="button" class="btn btn-xs btn-gold" id="btn-tab-direct-pwd" onclick="switchSettingsPwdTab('direct')">Change Password</button>
+                  <button type="button" class="btn btn-xs btn-outline" id="btn-tab-otp-pwd" onclick="switchSettingsPwdTab('otp')">Mobile OTP Recovery</button>
                 </div>
-                <button type="button" id="btn-request-otp" class="btn btn-gold btn-block" onclick="handleRequestOtp()">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
-                  <span>Send Verification OTP</span>
-                </button>
               </div>
+              <div id="pwd-alert" class="admin-alert admin-alert-success" style="display: none; margin-bottom: 14px;"></div>
+
+              <!-- TAB 1: Direct Change Password (In-Session) -->
+              <div id="settings-direct-pwd-tab" class="settings-pwd-tab active">
+                <p style="font-size: 0.86rem; color: rgba(255,255,255,0.85); line-height: 1.5; margin-bottom: 16px;">
+                  Update your admin account password. Requires verification of your current password.
+                </p>
+                <form id="direct-change-pwd-form" onsubmit="handleDirectPasswordChange(event)">
+                  <div class="form-group">
+                    <label for="direct-pwd-current">Current Password *</label>
+                    <div class="input-with-icon">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                      <input type="password" name="current_password" id="direct-pwd-current" class="form-control" required autocomplete="current-password" placeholder="Enter current password">
+                    </div>
+                  </div>
+                  <div class="form-group" style="margin-top: 12px;">
+                    <label for="direct-pwd-new">New Password (Min 8 characters) *</label>
+                    <div class="input-with-icon">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                      <input type="password" name="new_password" id="direct-pwd-new" class="form-control" required minlength="8" autocomplete="new-password" placeholder="Enter strong new password" oninput="checkDirectPasswordStrength()">
+                    </div>
+                    <div id="direct-pwd-strength-bar" style="height: 4px; border-radius: 2px; background: rgba(255,255,255,0.1); margin-top: 6px; overflow: hidden;">
+                      <div id="direct-pwd-strength-fill" style="width: 0%; height: 100%; transition: width 0.3s, background-color 0.3s;"></div>
+                    </div>
+                    <span id="direct-pwd-strength-text" style="font-size: 0.72rem; color: rgba(255,255,255,0.5);">Strength: Minimum 8 characters with numbers & symbols</span>
+                  </div>
+                  <div class="form-group" style="margin-top: 12px;">
+                    <label for="direct-pwd-confirm">Confirm New Password *</label>
+                    <div class="input-with-icon">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                      <input type="password" name="confirm_password" id="direct-pwd-confirm" class="form-control" required minlength="8" autocomplete="new-password" placeholder="Re-enter new password">
+                    </div>
+                  </div>
+                  <button type="submit" id="btn-submit-direct-pwd" class="btn btn-gold btn-block" style="margin-top: 18px;">
+                    <span>Update Password</span>
+                  </button>
+                </form>
+              </div>
+
+              <!-- TAB 2: Mobile OTP Password Verification -->
+              <div id="settings-otp-pwd-tab" class="settings-pwd-tab" style="display: none;">
+                <!-- STEP 1: Request OTP via Registered Mobile -->
+                <div id="otp-step-1" class="otp-wizard-step active">
+                  <p style="font-size: 0.86rem; color: rgba(255,255,255,0.85); line-height: 1.5; margin-bottom: 16px;">
+                    Multi-factor verification via your registered admin mobile number.
+                  </p>
+                  <div class="otp-phone-display">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                    <div>
+                      <span style="font-size: 0.72rem; color: var(--color-gold-light); display: block; text-transform: uppercase;">Registered Admin Mobile</span>
+                      <strong>+91 ******5454</strong>
+                    </div>
+                  </div>
+                  <button type="button" id="btn-request-otp" class="btn btn-gold btn-block" onclick="handleRequestOtp()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+                    <span>Send Verification OTP</span>
+                  </button>
+                </div>
 
               <!-- STEP 2: Enter 6-Digit OTP -->
               <div id="otp-step-2" class="otp-wizard-step">
@@ -1044,6 +1088,101 @@
         <button type="button" class="btn btn-outline" onclick="closeConfirmModal()">Cancel</button>
         <button type="button" id="btn-confirm-proceed" class="btn btn-danger">Confirm Delete</button>
       </div>
+    </div>
+  </div>
+
+
+  <!-- FORGOT PASSWORD & OTP MODAL -->
+  <div id="forgot-password-modal" class="admin-modal">
+    <div class="modal-dialog modal-dialog-sm" style="max-width: 440px;">
+      <div class="modal-header">
+        <h3 id="fp-modal-title" style="color: var(--color-gold);">Reset Admin Password</h3>
+        <button type="button" class="modal-close-btn" onclick="closeForgotPasswordModal()">&times;</button>
+      </div>
+      
+      <!-- STEP 1: Enter Username/Email -->
+      <div id="fp-step-1" class="modal-body">
+        <p style="font-size: 0.88rem; color: rgba(255,255,255,0.75); margin-bottom: 16px;">
+          Enter your registered admin username or email to receive a 6-digit verification code.
+        </p>
+        <div id="fp-alert-1" class="admin-alert admin-alert-danger" style="display: none; margin-bottom: 12px;"></div>
+        <form onsubmit="handleRequestOtpSubmit(event)">
+          <div class="form-group">
+            <label for="fp-identifier">Admin Username / Email</label>
+            <input type="text" id="fp-identifier" class="form-control" placeholder="admin@hiramoti.com" required autocomplete="username">
+          </div>
+          <div style="margin-top: 18px; display: flex; justify-content: flex-end; gap: 10px;">
+            <button type="button" class="btn btn-outline btn-sm" onclick="closeForgotPasswordModal()">Cancel</button>
+            <button type="submit" id="btn-request-otp-modal" class="btn btn-gold btn-sm">Send Verification Code</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- STEP 2: 6-Box OTP Input -->
+      <div id="fp-step-2" class="modal-body" style="display: none;">
+        <p style="font-size: 0.88rem; color: rgba(255,255,255,0.75); margin-bottom: 14px;">
+          Enter the 6-digit verification code dispatched to registered mobile <strong id="fp-masked-phone" style="color: var(--color-gold);">******5454</strong>.
+        </p>
+        <div id="fp-alert-2" class="admin-alert admin-alert-danger" style="display: none; margin-bottom: 12px;"></div>
+        
+        <div class="otp-inputs-container" style="display: flex; gap: 8px; justify-content: center; margin: 20px 0;">
+          <input type="text" maxlength="1" class="otp-box form-control" data-index="0" inputmode="numeric" autocomplete="one-time-code">
+          <input type="text" maxlength="1" class="otp-box form-control" data-index="1" inputmode="numeric">
+          <input type="text" maxlength="1" class="otp-box form-control" data-index="2" inputmode="numeric">
+          <input type="text" maxlength="1" class="otp-box form-control" data-index="3" inputmode="numeric">
+          <input type="text" maxlength="1" class="otp-box form-control" data-index="4" inputmode="numeric">
+          <input type="text" maxlength="1" class="otp-box form-control" data-index="5" inputmode="numeric">
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+          <span id="fp-timer" style="font-size: 0.8rem; color: rgba(255,255,255,0.6);">Resend code in 30s</span>
+          <button type="button" id="btn-resend-otp-modal" class="btn-link" style="font-size: 0.8rem; color: var(--color-gold); background: none; border: none; cursor: pointer; display: none;" onclick="resendOtp()">Resend Code</button>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 10px;">
+          <button type="button" class="btn btn-outline btn-sm" onclick="closeForgotPasswordModal()">Cancel</button>
+          <button type="button" id="btn-verify-otp-modal" class="btn btn-gold btn-sm" onclick="handleVerifyOtpSubmit()">Verify Code</button>
+        </div>
+      </div>
+
+      <!-- STEP 3: Set New Password -->
+      <div id="fp-step-3" class="modal-body" style="display: none;">
+        <p style="font-size: 0.88rem; color: rgba(255,255,255,0.75); margin-bottom: 16px;">
+          Set a new strong password for your admin account.
+        </p>
+        <div id="fp-alert-3" class="admin-alert admin-alert-danger" style="display: none; margin-bottom: 12px;"></div>
+        <form onsubmit="handleResetPasswordSubmit(event)">
+          <div class="form-group">
+            <label for="fp-new-password">New Password</label>
+            <input type="password" id="fp-new-password" class="form-control" required placeholder="Minimum 8 characters" autocomplete="new-password" oninput="checkFpPasswordStrength()">
+            <div id="fp-pwd-strength-bar" style="height: 4px; border-radius: 2px; background: rgba(255,255,255,0.1); margin-top: 6px; overflow: hidden;">
+              <div id="fp-pwd-strength-fill" style="width: 0%; height: 100%; transition: width 0.3s, background-color 0.3s;"></div>
+            </div>
+            <span id="fp-pwd-strength-text" style="font-size: 0.72rem; color: rgba(255,255,255,0.5);">Strength: Enter at least 8 characters</span>
+          </div>
+          <div class="form-group" style="margin-top: 12px;">
+            <label for="fp-confirm-password">Confirm New Password</label>
+            <input type="password" id="fp-confirm-password" class="form-control" required placeholder="Re-enter new password" autocomplete="new-password">
+          </div>
+          <div style="margin-top: 18px; display: flex; justify-content: flex-end; gap: 10px;">
+            <button type="button" class="btn btn-outline btn-sm" onclick="closeForgotPasswordModal()">Cancel</button>
+            <button type="submit" id="btn-reset-password-modal" class="btn btn-gold btn-sm">Update Password</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- STEP 4: Success Confirmation -->
+      <div id="fp-step-4" class="modal-body" style="display: none; text-align: center; padding: 24px 16px;">
+        <div style="width: 56px; height: 56px; border-radius: 50%; background: rgba(34,197,94,0.15); border: 2px solid #22c55e; color: #22c55e; display: inline-flex; align-items: center; justify-content: center; font-size: 1.8rem; margin-bottom: 14px;">
+          ✓
+        </div>
+        <h4 style="color: #fff; margin-bottom: 8px;">Password Updated!</h4>
+        <p style="font-size: 0.88rem; color: rgba(255,255,255,0.75); margin-bottom: 20px;">
+          Your admin password has been updated successfully. Please sign in with your new password.
+        </p>
+        <button type="button" class="btn btn-gold btn-sm" onclick="closeForgotPasswordModal()">Back to Sign In</button>
+      </div>
+
     </div>
   </div>
 
