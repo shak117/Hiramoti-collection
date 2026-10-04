@@ -1161,11 +1161,24 @@
             </div>
           </div>
 
-          <div class="form-group">
-            <label for="prod-image">Image URL / Path *</label>
-            <div class="input-with-button">
-              <input type="text" id="prod-image" class="form-control" required placeholder="assets/images/real_reel_DaiL4H0zCqV.jpg">
+          <div class="form-group media-upload-group">
+            <label for="prod-image">Product Image * <span class="text-muted text-xs" style="font-size: 0.76rem; font-weight: normal;">(Choose from Device, Pick from Gallery, or enter URL)</span></label>
+            <input type="file" id="prod-image-file" accept="image/jpeg,image/png,image/webp,image/avif" style="display: none;" onchange="handleProductImageDeviceUpload(event)">
+            
+            <div class="input-with-button" style="margin-bottom: 8px;">
+              <input type="text" id="prod-image" class="form-control" required placeholder="assets/images/real_reel_DaiL4H0zCqV.jpg" oninput="updateProductImagePreview(this.value)">
+              <button type="button" class="btn btn-gold btn-sm" onclick="document.getElementById('prod-image-file').click()" title="Upload image directly from your computer or phone">📁 Upload from Device</button>
               <button type="button" class="btn btn-outline-gold btn-sm" onclick="chooseImageForProduct()">Pick from Gallery</button>
+            </div>
+
+            <!-- Live Product Image Thumbnail Preview -->
+            <div id="prod-image-preview-box" style="display: none; align-items: center; gap: 12px; background: rgba(0,0,0,0.3); padding: 8px 12px; border-radius: 6px; border: 1px solid var(--color-border-dark);">
+              <img id="prod-image-thumb" src="" alt="Product Preview" style="width: 56px; height: 56px; object-fit: contain; border-radius: 4px; border: 1px solid var(--color-gold); background: #160408;" onerror="this.onerror=null; this.src='../assets/images/hiramoti_header_logo.png';">
+              <div style="flex: 1; min-width: 0;">
+                <span id="prod-image-status" style="font-size: 0.8rem; font-weight: 600; color: var(--color-gold);">Image Attached</span>
+                <p id="prod-image-path-label" style="font-size: 0.74rem; color: var(--color-muted); margin: 2px 0 0; word-break: break-all;"></p>
+              </div>
+              <button type="button" class="btn btn-outline btn-xs" onclick="clearProductImagePreview()">Remove</button>
             </div>
           </div>
 

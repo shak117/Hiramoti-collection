@@ -734,7 +734,10 @@
 
       // Synchronize with dynamic API if available
       function loadFounderDynamicData() {
-        fetch("/api/founder")
+        var API_BASE = (window.location.protocol === "file:" || (!window.location.host.includes(":5000") && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1" || !window.location.port)))
+          ? "http://localhost:5000"
+          : "";
+        fetch(API_BASE + "/api/founder?_t=" + Date.now(), { cache: "no-store" })
           .then(function(res) { return res.json(); })
           .then(function(data) {
             if (!data || !data.founder) return;

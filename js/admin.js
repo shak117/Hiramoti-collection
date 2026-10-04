@@ -58,6 +58,12 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 async function checkAuthStatus() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const qToken = urlParams.get("token") || urlParams.get("auth_token");
+  if (qToken) {
+    localStorage.setItem("hm_admin_token", qToken);
+  }
+
   try {
     const res = await fetch("/api/admin/me");
     if (res.ok) {
@@ -405,6 +411,15 @@ async function loadProducts() {
       renderProductsTable(cachedProducts);
       renderStockTable(cachedProducts);
       populateProductSelectDropdown(cachedProducts);
+
+      const urlParams = new URLSearchParams(window.location.search);
+      const editId = urlParams.get("edit");
+      if (editId) {
+        showSection("products");
+        setTimeout(() => {
+          openEditProductModal(editId);
+        }, 100);
+      }
     }
   } catch (err) {
     console.error("Error loading products:", err);
@@ -523,6 +538,9 @@ function openAddProductModal() {
   document.getElementById("prod-stock").value = 15;
   document.getElementById("prod-status").value = "in_stock";
   document.getElementById("prod-image").value = "assets/images/real_store_shirts.jpg";
+  if (typeof updateProductImagePreview === "function") {
+    updateProductImagePreview("assets/images/real_store_shirts.jpg");
+  }
   document.getElementById("product-modal").classList.add("show");
 }
 
@@ -545,6 +563,9 @@ function openEditProductModal(productId) {
   document.getElementById("prod-badge").value = p.badge || "";
   document.getElementById("prod-sizes").value = p.sizes || "";
   document.getElementById("prod-image").value = p.image || "";
+  if (typeof updateProductImagePreview === "function") {
+    updateProductImagePreview(p.image || "");
+  }
   document.getElementById("prod-reel-url").value = p.reel_url || "";
   document.getElementById("prod-description").value = p.description || "";
 
@@ -1305,11 +1326,72 @@ function chooseImageForProduct() {
   if (cachedImages.length > 0) {
     const choice = prompt("Enter an image path or pick from available:\n\n" + cachedImages.slice(0, 10).map(i => i.url).join("\n"), cachedImages[0].url);
     if (choice) {
-      document.getElementById("prod-image").value = choice.trim();
+      const trimmed = choice.trim().replace(/^['"]+|['"]+$/g, "");
+      document.getElementById("prod-image").value = trimmed;
+      updateProductImagePreview(trimmed);
     }
   } else {
     showToast("No images available. Please upload one in Image Manager.", "info");
   }
+}
+
+async function handleProductImageDeviceUpload(event) {
+  const file = event.target.files && event.target.files[0];
+  if (!file) return;
+
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("media_type", "image");
+
+  showToast("Uploading product image from device...", "info");
+
+  try {
+    const res = await fetch("/api/admin/upload-media", {
+      method: "POST",
+      body: formData
+    });
+    const data = await res.json();
+    if (res.ok && data.success) {
+      document.getElementById("prod-image").value = data.url;
+      updateProductImagePreview(data.url);
+      showToast("Product image uploaded from device successfully!", "success");
+    } else {
+      showToast(data.error || "Failed to upload image", "danger");
+    }
+  } catch (err) {
+    showToast("Network error uploading product image", "danger");
+  } finally {
+    event.target.value = "";
+  }
+}
+
+function updateProductImagePreview(url) {
+  const box = document.getElementById("prod-image-preview-box");
+  const thumb = document.getElementById("prod-image-thumb");
+  const label = document.getElementById("prod-image-path-label");
+  if (!box || !thumb) return;
+
+  const clean = (url || "").trim().replace(/^['"]+|['"]+$/g, "");
+  if (!clean) {
+    box.style.display = "none";
+    thumb.src = "";
+    if (label) label.textContent = "";
+    return;
+  }
+
+  let fullUrl = clean;
+  if (!clean.startsWith("http://") && !clean.startsWith("https://") && !clean.startsWith("data:")) {
+    fullUrl = "../" + clean.replace(/^\/+/, "");
+  }
+
+  thumb.src = fullUrl;
+  if (label) label.textContent = clean;
+  box.style.display = "flex";
+}
+
+function clearProductImagePreview() {
+  document.getElementById("prod-image").value = "";
+  updateProductImagePreview("");
 }
 
 // ==========================================================================

@@ -794,6 +794,20 @@
   <script src="js/data.js"></script>
   <script src="js/api-bridge.js"></script>
   <script>
+    // Dynamic API origin determination:
+    // If page is loaded via file:/// or an alternate port/server, point to Flask backend at http://localhost:5000
+    const API_BASE = (window.location.protocol === "file:" || (!window.location.host.includes(":5000") && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1" || !window.location.port)))
+      ? "http://localhost:5000"
+      : "";
+
+    function sanitizeDisplayImageUrl(url) {
+      if (!url) return "assets/images/real_store_shirts.jpg";
+      var clean = String(url).trim().replace(/^['"]+|['"]+$/g, "");
+      if (!clean) return "assets/images/real_store_shirts.jpg";
+      if (clean.startsWith("http://") || clean.startsWith("https://") || clean.startsWith("data:")) return clean;
+      return clean.replace(/^\/+/, "");
+    }
+
     var currentCategory = "all";
     var currentSearch = "";
     var currentSort = "featured";
@@ -845,8 +859,10 @@
       if (currentSort && currentSort !== "featured") query.set("sort", currentSort);
       if (inStockOnly) query.set("in_stock", "true");
 
+      var fetchUrl = API_BASE + "/api/products?" + query.toString() + (query.toString() ? "&" : "") + "_t=" + Date.now();
+
       try {
-        var res = await fetch("/api/products?" + query.toString());
+        var res = await fetch(fetchUrl, { cache: "no-store" });
         if (res.ok) {
           var data = await res.json();
           cachedProducts = data.products || [];
@@ -854,20 +870,22 @@
           return;
         }
       } catch (err) {
-        console.warn("Could not fetch /api/products, using local fallback data:", err);
+        console.warn("Could not fetch " + fetchUrl + ", using local fallback data:", err);
       }
 
       // Resilient fallback to REAL_PRODUCTS if server unreachable
       var fallback = (typeof REAL_PRODUCTS !== "undefined" ? REAL_PRODUCTS : []).filter(function(p) {
         if (currentCategory === "all") return true;
-        if (currentCategory === "jackets") return p.subtype === "jackets";
-        if (currentCategory === "shirts") return p.subtype === "formal_shirts" || p.subtype === "party_wear";
-        if (currentCategory === "casual") return p.subtype === "casual_denim";
-        if (currentCategory === "denim") return p.subtype === "denim";
-        if (currentCategory === "ethnic") return p.subtype === "ethnic";
-        if (currentCategory === "technosport") return p.category === "technosport" || p.subtype === "technosport";
-        if (currentCategory === "hosiery") return p.category === "hosiery" || p.subtype === "hosiery";
-        return true;
+        var cat = (p.category || "").toLowerCase();
+        var sub = (p.subtype || "").toLowerCase();
+        if (currentCategory === "jackets") return sub === "jackets" || cat === "jackets";
+        if (currentCategory === "shirts") return (sub === "formal_shirts" || sub === "party_wear" || sub === "shirts" || cat === "shirts");
+        if (currentCategory === "casual") return (sub === "casual_denim" || sub === "tshirts" || sub === "combos" || cat === "casual");
+        if (currentCategory === "denim") return sub === "denim" || cat === "denim";
+        if (currentCategory === "ethnic") return sub === "ethnic" || cat === "ethnic";
+        if (currentCategory === "technosport") return cat === "technosport" || sub === "technosport";
+        if (currentCategory === "hosiery") return cat === "hosiery" || sub === "hosiery";
+        return cat === currentCategory || sub === currentCategory;
       });
       cachedProducts = fallback;
       renderProducts(fallback, fallback.length, {});
@@ -900,13 +918,16 @@
         var hasDiscount = (origPrice && origPrice > p.price) || p.discount;
         var discLabel = p.discount || (hasDiscount ? Math.round(((origPrice - p.price) / origPrice) * 100) + "% OFF" : "");
         
+        var cleanImg = sanitizeDisplayImageUrl(p.image);
+        var safeName = (p.name || '').replace(/"/g, '&quot;');
+        
         var waMsg = "Hello Hiramoti Collection Satara! I want to inquire about: " + p.name + " (" + brandName + ", Price: Rs." + p.price + (discLabel ? ", " + discLabel : "") + "). Please share available sizes at Powai Naka showroom.";
         var waLink = "https://wa.me/919595989815?text=" + encodeURIComponent(waMsg);
 
         return '<div class="ecommerce-product-card">' +
           '<!-- FULL PRODUCT IMAGE CONTAINER (Contain, No Crop, Clean Canvas) -->' +
-          '<div class="product-image-wrapper" onclick="openProductDetail(\'' + p.id + '\')" title="Click to view details for ' + p.name + '">' +
-            '<img src="' + p.image + '" alt="' + p.name + '" loading="lazy" onerror="this.onerror=null; this.src=\'assets/images/hiramoti_header_logo.png\'; this.style.padding=\'28px\';">' +
+          '<div class="product-image-wrapper" onclick="openProductDetail(\'' + p.id + '\')" title="Click to view details for ' + safeName + '">' +
+            '<img src="' + cleanImg + '" alt="' + safeName + '" loading="lazy" onerror="this.onerror=null; this.src=\'assets/images/hiramoti_header_logo.png\'; this.style.padding=\'28px\';">' +
           '</div>' +
 
           '<!-- BELOW-IMAGE KPI & INFORMATION LAYOUT -->' +
@@ -1001,7 +1022,7 @@
       var discLabel = p.discount || ((origPrice && origPrice > p.price) ? Math.round(((origPrice - p.price) / origPrice) * 100) + "% OFF" : "");
       var isOut = (p.stock !== undefined && p.stock <= 0) || p.status === "out_of_stock";
 
-      document.getElementById("modal-product-img").src = p.image || "assets/images/hiramoti_header_logo.png";
+      document.getElementById("modal-product-img").src = sanitizeDisplayImageUrl(p.image);
       document.getElementById("modal-product-brand").textContent = brandName;
       
       var badgeEl = document.getElementById("modal-product-badge");

@@ -7,6 +7,12 @@
 (function () {
   "use strict";
 
+  // Dynamic API origin determination:
+  // If page is loaded via file:/// or an alternate port/server, route to Flask backend at http://localhost:5000
+  const API_BASE = (window.location.protocol === "file:" || (!window.location.host.includes(":5000") && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1" || !window.location.port)))
+    ? "http://localhost:5000"
+    : "";
+
   // Fetch live products and reels on page initialization
   document.addEventListener("DOMContentLoaded", function () {
     fetchLiveProducts();
@@ -16,14 +22,12 @@
 
   function resolvePublicImageUrl(url) {
     if (!url) return "assets/images/real_reel_DaiL4H0zCqV.jpg";
-    const trimmed = String(url).trim();
-    if (trimmed.startsWith("http://") || trimmed.startsWith("https://") || trimmed.startsWith("data:")) {
-      return trimmed;
+    const clean = String(url).trim().replace(/^['"]+|['"]+$/g, "");
+    if (!clean) return "assets/images/real_reel_DaiL4H0zCqV.jpg";
+    if (clean.startsWith("http://") || clean.startsWith("https://") || clean.startsWith("data:")) {
+      return clean;
     }
-    if (trimmed.startsWith("/")) {
-      return trimmed.replace(/^\/+/, "");
-    }
-    return trimmed;
+    return clean.replace(/^\/+/, "");
   }
 
   // ---------------------------------------------------------------------------
@@ -31,7 +35,7 @@
   // ---------------------------------------------------------------------------
   async function fetchLiveProducts() {
     try {
-      const res = await fetch("/api/products?_t=" + Date.now(), { cache: "no-store" });
+      const res = await fetch(API_BASE + "/api/products?_t=" + Date.now(), { cache: "no-store" });
       if (!res.ok) return;
       const data = await res.json();
       if (data && data.products && data.products.length > 0) {
@@ -46,7 +50,7 @@
           originalPrice: p.original_price || (p.price * 1.5),
           discount: p.discount || "",
           badge: p.badge || (p.stock <= 0 ? "Out of Stock" : "In Stock"),
-          image: p.image,
+          image: resolvePublicImageUrl(p.image),
           reelUrl: p.reel_url || "https://www.instagram.com/hiramoticollection/",
           description: p.description || "",
           sizes: p.sizes_list || ["M", "L", "XL"],
@@ -76,7 +80,7 @@
   // ---------------------------------------------------------------------------
   async function fetchLiveReels() {
     try {
-      const res = await fetch("/api/reels?_t=" + Date.now(), { cache: "no-store" });
+      const res = await fetch(API_BASE + "/api/reels?_t=" + Date.now(), { cache: "no-store" });
       if (!res.ok) return;
       const data = await res.json();
       if (data && data.reels && data.reels.length > 0) {
@@ -91,7 +95,7 @@
           price: r.price || "SPECIAL OFFER",
           offer: r.offer || "VIRAL DROP",
           category: r.category || "general",
-          image: r.image,
+          image: resolvePublicImageUrl(r.image),
           displayOrder: r.display_order
         }));
 
@@ -279,7 +283,7 @@
 
       if (name && phone) {
         // Send to backend database
-        fetch("/api/enquiries", {
+        fetch(API_BASE + "/api/enquiries", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({

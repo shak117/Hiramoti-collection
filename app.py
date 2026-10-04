@@ -4,6 +4,7 @@ Serves public website pages, static assets, and full secure Admin REST API.
 """
 
 import os
+import shutil
 import re
 import json
 import uuid
@@ -773,6 +774,40 @@ def api_admin_products():
     products = apply_promotional_rules(products, rules)
     return jsonify({"products": products, "count": len(products)})
 
+def sanitize_and_ingest_image_path(img_str):
+    """
+    Sanitizes image string, removes surrounding quotes, and auto-ingests local filesystem
+    paths into assets/uploads/ with unique filenames.
+    """
+    if not img_str:
+        return "assets/images/real_store_shirts.jpg"
+    clean = str(img_str).strip().strip('"').strip("'").strip()
+    if not clean:
+        return "assets/images/real_store_shirts.jpg"
+    if clean.startswith("http://") or clean.startswith("https://") or clean.startswith("data:"):
+        return clean
+    if clean.startswith("/assets/"):
+        return clean[1:]
+    if clean.startswith("assets/"):
+        return clean
+
+    # Check if this points to an existing file on the local machine
+    clean_norm = os.path.normpath(clean)
+    if os.path.isfile(clean_norm):
+        try:
+            os.makedirs(UPLOAD_DIR, exist_ok=True)
+            ext = clean_norm.rsplit(".", 1)[-1].lower() if "." in clean_norm else "jpg"
+            if ext not in ALLOWED_IMAGE_EXTENSIONS:
+                ext = "jpg"
+            unique_name = f"hm_ingest_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{str(uuid.uuid4())[:6]}.{ext}"
+            dest_path = os.path.join(UPLOAD_DIR, unique_name)
+            shutil.copy2(clean_norm, dest_path)
+            return f"assets/uploads/{unique_name}"
+        except Exception as e:
+            print("Auto-ingest image error:", e)
+
+    return clean
+
 @app.route("/api/admin/products", methods=["POST"])
 @admin_required
 def api_admin_create_product():
@@ -814,7 +849,7 @@ def api_admin_create_product():
         stock = 10
 
     status = "out_of_stock" if stock <= 0 else data.get("status", "in_stock")
-    image = data.get("image", "").strip() or "assets/images/real_store_shirts.jpg"
+    image = sanitize_and_ingest_image_path(data.get("image", ""))
     marathi_name = data.get("marathi_name", "").strip()
     badge = data.get("badge", "").strip()
     description = data.get("description", "").strip()
@@ -876,7 +911,7 @@ def api_admin_update_product(prod_id):
     badge = data.get("badge", existing["badge"]).strip()
     description = data.get("description", existing["description"]).strip()
     sizes = data.get("sizes", existing["sizes"]).strip()
-    image = data.get("image", existing["image"]).strip()
+    image = sanitize_and_ingest_image_path(data.get("image", existing["image"]))
     reel_url = data.get("reel_url", existing["reel_url"]).strip()
     stock = int(data.get("stock", existing["stock"]))
     status = "out_of_stock" if stock <= 0 else data.get("status", existing["status"])
