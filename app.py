@@ -570,51 +570,198 @@ def api_admin_dashboard_stats():
 
 
 # ---------------------------------------------------------------------------
-# Products API (Public & Admin)
+# Dynamic Promotional Rules & Products API (Public & Admin)
 # ---------------------------------------------------------------------------
+def apply_promotional_rules(products, rules):
+    """
+    Applies active promotional rules (such as TechnoSport 10% discount) dynamically
+    without permanently altering original product base prices in the database.
+    """
+    today_str = datetime.now().strftime("%Y-%m-%d")
+    category_rules = {}
+    product_rules = {}
+
+    for r in rules:
+        if not r.get("is_active"):
+            continue
+        s_date = r.get("start_date")
+        e_date = r.get("end_date")
+        if s_date and today_str < s_date:
+            continue
+        if e_date and today_str > e_date:
+            continue
+
+        t_type = r.get("target_type")
+        t_val = str(r.get("target_value", "")).strip().lower()
+        if t_type == "category":
+            category_rules[t_val] = r
+        elif t_type == "product":
+            product_rules[t_val] = r
+
+    for p in products:
+        p_id = str(p.get("id", "")).lower()
+        p_cat = str(p.get("category", "")).lower()
+        p_sub = str(p.get("subtype", "")).lower()
+
+        rule = product_rules.get(p_id) or category_rules.get(p_cat) or category_rules.get(p_sub)
+        if rule:
+            d_type = rule.get("discount_type", "percentage")
+            d_val = float(rule.get("discount_value", 0))
+            orig_price = p.get("original_price") or p.get("price")
+
+            if orig_price and orig_price > 0 and d_val > 0:
+                p["original_price"] = orig_price
+                if d_type == "percentage":
+                    sale_price = round(orig_price * (1 - (d_val / 100)))
+                    p["price"] = sale_price
+                    p["discount"] = f"{int(d_val)}% OFF"
+                    p["discount_percent"] = d_val
+                else:
+                    sale_price = max(1, round(orig_price - d_val))
+                    p["price"] = sale_price
+                    p["discount"] = f"₹{int(d_val)} OFF"
+                p["promo_applied"] = rule.get("name", "Special Offer")
+                p["is_promo_discount"] = True
+    return products
+
 @app.route("/api/products", methods=["GET"])
 def api_public_products():
     category = request.args.get("category")
     subtype = request.args.get("subtype")
     search = request.args.get("search")
-
-    query = "SELECT * FROM products WHERE 1=1"
-    params = []
-
-    if category and category != "all":
-        query += " AND category = ?"
-        params.append(category)
-    if subtype and subtype != "all":
-        query += " AND subtype = ?"
-        params.append(subtype)
-    if search:
-        query += " AND (name LIKE ? OR marathi_name LIKE ? OR description LIKE ?)"
-        term = f"%{search}%"
-        params.extend([term, term, term])
-
-    query += " ORDER BY display_order ASC, created_at DESC"
+    sort_by = request.args.get("sort", "featured")
+    in_stock_only = request.args.get("in_stock") in ("true", "1")
 
     conn = get_db_connection()
-    rows = conn.execute(query, params).fetchall()
-    conn.close()
+    all_rows = conn.execute("SELECT * FROM products ORDER BY display_order ASC, created_at DESC").fetchall()
+    
+    # Check promotional rules
+    try:
+        rules_rows = conn.execute("SELECT * FROM promotional_rules WHERE is_active = 1").fetchall()
+        rules = [dict(r) for r in rules_rows]
+    except Exception:
+        rules = []
 
-    products = []
-    for r in rows:
+    all_products = []
+    for r in all_rows:
         p = dict(r)
-        # Parse sizes
         p["sizes_list"] = [s.strip() for s in p.get("sizes", "").split(",") if s.strip()]
-        # Auto-compute status based on stock
-        if p["stock"] <= 0:
+        if p.get("stock", 0) <= 0:
             p["status"] = "out_of_stock"
-        products.append(p)
+        all_products.append(p)
 
-    return jsonify({"products": products, "count": len(products)})
+    # Apply dynamic promotional discounts (e.g. TechnoSport 10% OFF)
+    all_products = apply_promotional_rules(all_products, rules)
+
+    # Calculate real-time category counts
+    counts = {
+        "all": len(all_products),
+        "jackets": 0,
+        "shirts": 0,
+        "casual": 0,
+        "denim": 0,
+        "ethnic": 0,
+        "technosport": 0,
+        "hosiery": 0
+    }
+    for p in all_products:
+        c = p.get("category", "").lower()
+        s = p.get("subtype", "").lower()
+        if c == "technosport" or s == "technosport":
+            counts["technosport"] += 1
+        if c == "hosiery" or s == "hosiery":
+            counts["hosiery"] += 1
+        if s == "jackets" or c == "jackets":
+            counts["jackets"] += 1
+        if s in ("formal_shirts", "party_wear", "shirts") or c == "shirts":
+            counts["shirts"] += 1
+        if s in ("casual_denim", "tshirts", "combos") or c == "casual":
+            counts["casual"] += 1
+        if s == "denim" or c == "denim":
+            counts["denim"] += 1
+        if s == "ethnic" or c == "ethnic":
+            counts["ethnic"] += 1
+
+    # Filter
+    filtered = []
+    for p in all_products:
+        c = p.get("category", "").lower()
+        s = p.get("subtype", "").lower()
+
+        if category and category != "all":
+            cat_lower = category.lower()
+            if cat_lower == "technosport":
+                if c != "technosport" and s != "technosport":
+                    continue
+            elif cat_lower == "hosiery":
+                if c != "hosiery" and s != "hosiery":
+                    continue
+            elif cat_lower == "jackets":
+                if s != "jackets" and c != "jackets":
+                    continue
+            elif cat_lower == "shirts":
+                if s not in ("formal_shirts", "party_wear", "shirts") and c != "shirts":
+                    continue
+            elif cat_lower == "casual":
+                if s not in ("casual_denim", "tshirts", "combos") and c != "casual":
+                    continue
+            elif cat_lower == "denim":
+                if s != "denim" and c != "denim":
+                    continue
+            elif cat_lower == "ethnic":
+                if s != "ethnic" and c != "ethnic":
+                    continue
+            else:
+                if c != cat_lower and s != cat_lower:
+                    continue
+
+        if subtype and subtype != "all" and s != subtype.lower():
+            continue
+
+        if in_stock_only and p.get("status") == "out_of_stock":
+            continue
+
+        if search:
+            term = search.lower().strip()
+            search_corpus = f"{p.get('name','')} {p.get('marathi_name','')} {p.get('brand','')} {p.get('description','')} {p.get('category','')} {p.get('subtype','')} {p.get('badge','')} {p.get('id','')}".lower()
+            if term not in search_corpus:
+                continue
+
+        filtered.append(p)
+
+    # Sorting
+    if sort_by == "price_asc":
+        filtered.sort(key=lambda x: x.get("price", 0))
+    elif sort_by == "price_desc":
+        filtered.sort(key=lambda x: x.get("price", 0), reverse=True)
+    elif sort_by == "discount":
+        def calc_saving(x):
+            op = x.get("original_price") or x.get("price") or 0
+            sp = x.get("price") or 0
+            return (op - sp) if op > sp else 0
+        filtered.sort(key=calc_saving, reverse=True)
+    elif sort_by == "newest":
+        filtered.sort(key=lambda x: str(x.get("created_at", "")), reverse=True)
+
+    conn.close()
+    return jsonify({
+        "products": filtered,
+        "count": len(filtered),
+        "total_count": len(all_products),
+        "category_counts": counts
+    })
 
 @app.route("/api/admin/products", methods=["GET"])
 @admin_required
 def api_admin_products():
     conn = get_db_connection()
     rows = conn.execute("SELECT * FROM products ORDER BY display_order ASC, created_at DESC").fetchall()
+    
+    try:
+        rules_rows = conn.execute("SELECT * FROM promotional_rules WHERE is_active = 1").fetchall()
+        rules = [dict(r) for r in rules_rows]
+    except Exception:
+        rules = []
     conn.close()
 
     products = []
@@ -623,6 +770,7 @@ def api_admin_products():
         p["sizes_list"] = [s.strip() for s in p.get("sizes", "").split(",") if s.strip()]
         products.append(p)
 
+    products = apply_promotional_rules(products, rules)
     return jsonify({"products": products, "count": len(products)})
 
 @app.route("/api/admin/products", methods=["POST"])
@@ -631,7 +779,8 @@ def api_admin_create_product():
     data = request.get_json() or {}
     name = data.get("name", "").strip()
     category = data.get("category", "mens").strip()
-    subtype = data.get("subtype", "jackets").strip()
+    subtype = data.get("subtype", category).strip()
+    brand = data.get("brand", "Hiramoti Collection").strip()
     
     try:
         price = float(data.get("price", 0))
@@ -645,7 +794,8 @@ def api_admin_create_product():
 
     prod_id = data.get("id", "").strip()
     if not prod_id:
-        prod_id = f"HM-{subtype[:3].upper()}-{str(uuid.uuid4())[:4].upper()}"
+        prefix = subtype[:3].upper() if subtype else "PRD"
+        prod_id = f"HM-{prefix}-{str(uuid.uuid4())[:4].upper()}"
 
     original_price = data.get("original_price")
     try:
@@ -677,11 +827,11 @@ def api_admin_create_product():
     try:
         conn.execute("""
             INSERT INTO products (
-                id, code, name, marathi_name, category, subtype, price, original_price,
+                id, code, name, marathi_name, category, subtype, brand, price, original_price,
                 discount, badge, description, sizes, image, reel_url, stock, status, is_featured, display_order
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
-            prod_id, prod_id, name, marathi_name, category, subtype, price, original_price,
+            prod_id, prod_id, name, marathi_name, category, subtype, brand, price, original_price,
             discount, badge, description, sizes, image, reel_url, stock, status, is_featured, display_order
         ))
         conn.execute("""
@@ -712,6 +862,7 @@ def api_admin_update_product(prod_id):
     marathi_name = data.get("marathi_name", existing["marathi_name"]).strip()
     category = data.get("category", existing["category"]).strip()
     subtype = data.get("subtype", existing["subtype"]).strip()
+    brand = data.get("brand", existing["brand"] if "brand" in existing.keys() else "Hiramoti Collection").strip()
     price = float(data.get("price", existing["price"]))
     
     orig_p = data.get("original_price")
@@ -734,12 +885,12 @@ def api_admin_update_product(prod_id):
 
     conn.execute("""
         UPDATE products SET
-            name = ?, marathi_name = ?, category = ?, subtype = ?, price = ?, original_price = ?,
+            name = ?, marathi_name = ?, category = ?, subtype = ?, brand = ?, price = ?, original_price = ?,
             discount = ?, badge = ?, description = ?, sizes = ?, image = ?, reel_url = ?,
             stock = ?, status = ?, is_featured = ?, display_order = ?, updated_at = CURRENT_TIMESTAMP
         WHERE id = ?
     """, (
-        name, marathi_name, category, subtype, price, original_price,
+        name, marathi_name, category, subtype, brand, price, original_price,
         discount, badge, description, sizes, image, reel_url,
         stock, status, is_featured, display_order, prod_id
     ))
@@ -757,6 +908,196 @@ def api_admin_update_product(prod_id):
     conn.close()
 
     return jsonify({"success": True, "message": "Product updated successfully", "product": dict(updated)})
+
+
+# ---------------------------------------------------------------------------
+# Categories Management API
+# ---------------------------------------------------------------------------
+@app.route("/api/categories", methods=["GET"])
+def api_public_categories():
+    conn = get_db_connection()
+    rows = conn.execute("SELECT * FROM categories WHERE is_active = 1 ORDER BY display_order ASC").fetchall()
+    conn.close()
+    return jsonify({"categories": [dict(r) for r in rows]})
+
+@app.route("/api/admin/categories", methods=["GET"])
+@admin_required
+def api_admin_get_categories():
+    conn = get_db_connection()
+    rows = conn.execute("SELECT * FROM categories ORDER BY display_order ASC").fetchall()
+    conn.close()
+    return jsonify({"categories": [dict(r) for r in rows]})
+
+@app.route("/api/admin/categories", methods=["POST"])
+@admin_required
+def api_admin_create_category():
+    data = request.get_json() or {}
+    name = data.get("name", "").strip()
+    slug = data.get("slug", "").strip().lower().replace(" ", "_").replace("&", "and")
+    if not name:
+        return jsonify({"error": "Category name is required"}), 400
+    if not slug:
+        slug = name.lower().replace(" ", "_")
+
+    cat_id = data.get("id") or f"CAT-{slug.upper()}"
+    marathi_name = data.get("marathi_name", "").strip()
+    icon = data.get("icon", "✨").strip()
+    tag = data.get("tag", "").strip()
+    display_order = int(data.get("display_order", 99))
+    is_active = 1 if data.get("is_active", True) else 0
+
+    conn = get_db_connection()
+    try:
+        conn.execute("""
+            INSERT INTO categories (id, name, marathi_name, slug, icon, tag, display_order, is_active)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        """, (cat_id, name, marathi_name, slug, icon, tag, display_order, is_active))
+        conn.commit()
+    except sqlite3.IntegrityError:
+        conn.close()
+        return jsonify({"error": f"Category with slug '{slug}' already exists."}), 400
+
+    row = conn.execute("SELECT * FROM categories WHERE id = ?", (cat_id,)).fetchone()
+    conn.close()
+    return jsonify({"success": True, "message": "Category created successfully", "category": dict(row)}), 201
+
+@app.route("/api/admin/categories/<cat_id>", methods=["PUT"])
+@admin_required
+def api_admin_update_category(cat_id):
+    data = request.get_json() or {}
+    conn = get_db_connection()
+    existing = conn.execute("SELECT * FROM categories WHERE id = ?", (cat_id,)).fetchone()
+    if not existing:
+        conn.close()
+        return jsonify({"error": "Category not found"}), 404
+
+    name = data.get("name", existing["name"]).strip()
+    marathi_name = data.get("marathi_name", existing["marathi_name"] or "").strip()
+    icon = data.get("icon", existing["icon"] or "✨").strip()
+    tag = data.get("tag", existing["tag"] or "").strip()
+    display_order = int(data.get("display_order", existing["display_order"]))
+    is_active = 1 if data.get("is_active", existing["is_active"]) else 0
+
+    conn.execute("""
+        UPDATE categories SET
+            name = ?, marathi_name = ?, icon = ?, tag = ?,
+            display_order = ?, is_active = ?
+        WHERE id = ?
+    """, (name, marathi_name, icon, tag, display_order, is_active, cat_id))
+    conn.commit()
+    updated = conn.execute("SELECT * FROM categories WHERE id = ?", (cat_id,)).fetchone()
+    conn.close()
+    return jsonify({"success": True, "message": "Category updated successfully", "category": dict(updated)})
+
+@app.route("/api/admin/categories/<cat_id>", methods=["DELETE"])
+@admin_required
+def api_admin_delete_category(cat_id):
+    conn = get_db_connection()
+    existing = conn.execute("SELECT * FROM categories WHERE id = ?", (cat_id,)).fetchone()
+    if not existing:
+        conn.close()
+        return jsonify({"error": "Category not found"}), 404
+
+    conn.execute("DELETE FROM categories WHERE id = ?", (cat_id,))
+    conn.commit()
+    conn.close()
+    return jsonify({"success": True, "message": f"Category '{existing['name']}' deleted."})
+
+
+# ---------------------------------------------------------------------------
+# Promotional Discounts Management API
+# ---------------------------------------------------------------------------
+@app.route("/api/discounts", methods=["GET"])
+def api_public_discounts():
+    conn = get_db_connection()
+    rows = conn.execute("SELECT * FROM promotional_rules WHERE is_active = 1").fetchall()
+    conn.close()
+    return jsonify({"rules": [dict(r) for r in rows]})
+
+@app.route("/api/admin/discounts", methods=["GET"])
+@admin_required
+def api_admin_get_discounts():
+    conn = get_db_connection()
+    rows = conn.execute("SELECT * FROM promotional_rules ORDER BY created_at DESC").fetchall()
+    conn.close()
+    return jsonify({"rules": [dict(r) for r in rows]})
+
+@app.route("/api/admin/discounts", methods=["POST"])
+@admin_required
+def api_admin_save_discount():
+    data = request.get_json() or {}
+    rule_id = data.get("id") or f"RULE-{int(time.time())}"
+    name = data.get("name", "Promotional Discount").strip()
+    target_type = data.get("target_type", "category").strip()
+    target_value = data.get("target_value", "technosport").strip().lower()
+    discount_type = data.get("discount_type", "percentage").strip()
+    try:
+        discount_value = float(data.get("discount_value", 10.0))
+    except (ValueError, TypeError):
+        discount_value = 10.0
+    start_date = data.get("start_date") or None
+    end_date = data.get("end_date") or None
+    is_active = 1 if data.get("is_active", True) else 0
+
+    conn = get_db_connection()
+    conn.execute("""
+        INSERT OR REPLACE INTO promotional_rules (
+            id, name, target_type, target_value, discount_type, discount_value,
+            start_date, end_date, is_active, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+    """, (rule_id, name, target_type, target_value, discount_type, discount_value, start_date, end_date, is_active))
+    conn.commit()
+    row = conn.execute("SELECT * FROM promotional_rules WHERE id = ?", (rule_id,)).fetchone()
+    conn.close()
+    return jsonify({"success": True, "message": "Promotional rule saved successfully", "rule": dict(row)})
+
+@app.route("/api/admin/discounts/<rule_id>", methods=["PUT"])
+@admin_required
+def api_admin_update_discount(rule_id):
+    data = request.get_json() or {}
+    conn = get_db_connection()
+    existing = conn.execute("SELECT * FROM promotional_rules WHERE id = ?", (rule_id,)).fetchone()
+    if not existing:
+        conn.close()
+        return jsonify({"error": "Promotional rule not found"}), 404
+
+    name = data.get("name", existing["name"]).strip()
+    target_type = data.get("target_type", existing["target_type"]).strip()
+    target_value = data.get("target_value", existing["target_value"]).strip().lower()
+    discount_type = data.get("discount_type", existing["discount_type"]).strip()
+    try:
+        discount_value = float(data.get("discount_value", existing["discount_value"]))
+    except (ValueError, TypeError):
+        discount_value = 10.0
+    start_date = data.get("start_date", existing["start_date"])
+    end_date = data.get("end_date", existing["end_date"])
+    is_active = 1 if data.get("is_active", existing["is_active"]) else 0
+
+    conn.execute("""
+        UPDATE promotional_rules SET
+            name = ?, target_type = ?, target_value = ?, discount_type = ?,
+            discount_value = ?, start_date = ?, end_date = ?, is_active = ?,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = ?
+    """, (name, target_type, target_value, discount_type, discount_value, start_date, end_date, is_active, rule_id))
+    conn.commit()
+    updated = conn.execute("SELECT * FROM promotional_rules WHERE id = ?", (rule_id,)).fetchone()
+    conn.close()
+    return jsonify({"success": True, "message": "Promotional rule updated", "rule": dict(updated)})
+
+@app.route("/api/admin/discounts/<rule_id>", methods=["DELETE"])
+@admin_required
+def api_admin_delete_discount(rule_id):
+    conn = get_db_connection()
+    existing = conn.execute("SELECT * FROM promotional_rules WHERE id = ?", (rule_id,)).fetchone()
+    if not existing:
+        conn.close()
+        return jsonify({"error": "Promotional rule not found"}), 404
+
+    conn.execute("DELETE FROM promotional_rules WHERE id = ?", (rule_id,))
+    conn.commit()
+    conn.close()
+    return jsonify({"success": True, "message": f"Promotional rule '{existing['name']}' deleted."})
 
 @app.route("/api/admin/products/<prod_id>", methods=["DELETE"])
 @admin_required
@@ -1233,30 +1574,31 @@ def api_get_founder():
         "milestones": [
             {
                 "year": "1987",
-                "badge_sub": "Origin",
+                "badge_sub": "Shop Founded",
+                "badge_display": "1 MAY",
                 "tag": "The Beginning • Vision • Trust",
-                "title": "The Beginning",
-                "description": "Hiramoti Collection was founded in 1987 with a singular vision — to bring premium-quality clothing, honest pricing, and genuine trust to the people of Satara. From humble beginnings, it was built on deep relationships with every customer who walked through the doors.",
+                "title": "1 May 1987 — The Beginning",
+                "description": "Hiramoti Collection was founded on 1 May 1987, beginning a journey built on trust, quality and service to the people of Satara.",
                 "quote": "Where trust and honest craftsmanship were first woven into our story.",
                 "image": "assets/images/hiramoti_real_store_2.png",
-                "caption": "Hiramoti Collection — Established 1987"
+                "caption": "Hiramoti Collection — Founded 1 May 1987"
             },
             {
-                "year": "2012",
+                "year": "2006",
                 "badge_sub": "Evolution",
-                "tag": "The First Renovation • Showroom Evolution",
-                "title": "The First Renovation",
-                "description": "To serve our growing family of customers better, Hiramoti Collection underwent its first major showroom renovation in 2012. Modern retail displays, expanded clothing collections, and a refined shopping experience were introduced — while preserving the warmth, personal attention, and trust that defined the brand from day one.",
+                "tag": "The Second Renovation • Showroom Evolution",
+                "title": "2006 — The Second Renovation",
+                "description": "In 2006, Hiramoti Collection completed its milestone second showroom renovation, modernizing retail displays, expanding premium clothing collections, and elevating the shopping experience while preserving the personal warmth and trust that defined the brand.",
                 "quote": "Preserving our warmth while evolving to serve growing generations.",
                 "image": "assets/images/hiramoti_store_interior.jpg",
-                "caption": "Showroom Transformation — 2012"
+                "caption": "Showroom Transformation — 2006"
             },
             {
                 "year": "2026",
-                "badge_sub": "New Chapter",
-                "tag": "The Second Renovation • A New Chapter",
-                "title": "The Second Renovation",
-                "description": "In 2026, Hiramoti Collection unveiled a grand, state-of-the-art showroom renovation. Featuring contemporary lighting, premium display sections for suits, sherwanis, jackets, and everyday essentials, and an elevated shopping ambiance — designed to serve the next generation while honouring the legacy of the past.",
+                "badge_sub": "Present Day",
+                "tag": "Showroom Evolution • A New Chapter",
+                "title": "2026 — Present Day & Grand Showroom",
+                "description": "In 2026, Hiramoti Collection continues its 39+ year tradition of excellence at Powai Naka with a contemporary showroom, expansive festive and menswear collections, and dedicated customer service for generations of Satara families.",
                 "quote": "Honouring the past. Building for the future.",
                 "image": "assets/images/hiramoti_exterior_entrance.jpg",
                 "caption": "The New Hiramoti Collection Showroom — 2026"

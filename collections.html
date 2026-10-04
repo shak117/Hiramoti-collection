@@ -59,24 +59,32 @@
               <span class="dropdown-tag">50+ Styles</span>
             </a>
             <a href="collections.html?category=jackets" class="dropdown-link">
-              <span>Bomber & TPU Jackets</span>
+              <span>Bomber &amp; TPU Jackets</span>
               <span class="dropdown-tag">From ₹399</span>
             </a>
             <a href="collections.html?category=shirts" class="dropdown-link">
-              <span>Cotton & Floral Shirts</span>
+              <span>Cotton &amp; Floral Shirts</span>
               <span class="dropdown-tag">₹799</span>
             </a>
             <a href="collections.html?category=casual" class="dropdown-link">
-              <span>T-Shirt & Track Combos</span>
+              <span>T-Shirt &amp; Track Combos</span>
               <span class="dropdown-tag">3 for ₹800</span>
             </a>
             <a href="collections.html?category=denim" class="dropdown-link">
-              <span>Branded Denim & Trousers</span>
+              <span>Branded Denim &amp; Trousers</span>
               <span class="dropdown-tag">M to 3XL</span>
             </a>
             <a href="collections.html?category=ethnic" class="dropdown-link">
-              <span>Festive & Ethnic Wear</span>
+              <span>Festive &amp; Ethnic Wear</span>
               <span class="dropdown-tag">Royal</span>
+            </a>
+            <a href="collections.html?category=technosport" class="dropdown-link">
+              <span>TechnoSport</span>
+              <span class="dropdown-tag" style="background: rgba(220, 38, 38, 0.25); color: #fca5a5; font-weight: 700;">10% OFF</span>
+            </a>
+            <a href="collections.html?category=hosiery" class="dropdown-link">
+              <span>Hosiery</span>
+              <span class="dropdown-tag" style="background: rgba(220, 38, 38, 0.25); color: #fca5a5; font-weight: 700;">10% OFF</span>
             </a>
           </div>
         </div>
@@ -123,11 +131,13 @@
         <a href="collections.html" class="nav-link active">Catalogue ▾</a>
         <div class="drawer-sublinks">
           <a href="collections.html?category=all" class="drawer-sublink">• All Collections (50+ Styles)</a>
-          <a href="collections.html?category=jackets" class="drawer-sublink">• Bomber & TPU Jackets</a>
-          <a href="collections.html?category=shirts" class="drawer-sublink">• Cotton & Floral Shirts</a>
+          <a href="collections.html?category=jackets" class="drawer-sublink">• Bomber &amp; TPU Jackets</a>
+          <a href="collections.html?category=shirts" class="drawer-sublink">• Cotton &amp; Floral Shirts</a>
           <a href="collections.html?category=casual" class="drawer-sublink">• T-Shirt Combos (3 for ₹800)</a>
-          <a href="collections.html?category=denim" class="drawer-sublink">• Branded Denim & Trousers</a>
-          <a href="collections.html?category=ethnic" class="drawer-sublink">• Festive & Ethnic Wear</a>
+          <a href="collections.html?category=denim" class="drawer-sublink">• Branded Denim &amp; Trousers</a>
+          <a href="collections.html?category=ethnic" class="drawer-sublink">• Festive &amp; Ethnic Wear</a>
+          <a href="collections.html?category=technosport" class="drawer-sublink" style="color: #b91c1c; font-weight: 700;">• TechnoSport (10% OFF)</a>
+          <a href="collections.html?category=hosiery" class="drawer-sublink" style="color: #b91c1c; font-weight: 700;">• Hosiery (10% OFF)</a>
         </div>
       </div>
 
@@ -146,56 +156,138 @@
     </div>
   </aside>
 
-  <!-- PAGE HEADER -->
-  <section class="page-header" style="background: var(--color-burgundy-dark); padding: 50px 0; color: var(--color-white); text-align: center; border-bottom: 1px solid var(--color-gold-border);">
-    <div class="container">
-      <div class="badge-tag badge-gold" style="margin-bottom: 15px;">Satara's Premier Clothing Landmark Since 1987</div>
-      <h1 class="page-title" style="color: var(--color-gold-pale); font-size: 2.8rem; margin-bottom: 10px;">Our Complete Collections</h1>
-      <div class="breadcrumbs" style="font-size: 0.85rem; color: rgba(255,255,255,0.7);">
-        <a href="index.html" style="color: var(--color-gold-light);">Home</a>
-        <span>/</span>
-        <span>Clothing Collections</span>
-      </div>
-    </div>
-  </section>
-
-  <main style="padding: 60px 0;">
+  <main class="catalogue-main-layout">
     <div class="container">
       
-      <!-- Filter Bar with All Varieties -->
-      <div class="filter-bar">
-        <button class="cat-filter-btn btn-gold active" data-cat="all" onclick="filterCatalog('all', this)">
-          <span class="cat-btn-icon">✨</span>
-          <span>All Real Stock</span>
-        </button>
-        <button class="cat-filter-btn" data-cat="jackets" onclick="filterCatalog('jackets', this)">
-          <span class="cat-btn-icon">🧥</span>
-          <span>Bomber &amp; TPU Jackets</span>
-        </button>
-        <button class="cat-filter-btn" data-cat="shirts" onclick="filterCatalog('shirts', this)">
-          <span class="cat-btn-icon">👔</span>
-          <span>Cotton &amp; Printed Shirts</span>
-        </button>
-        <button class="cat-filter-btn" data-cat="casual" onclick="filterCatalog('casual', this)">
-          <span class="cat-btn-icon">👕</span>
-          <span>T-Shirts &amp; Track Combos</span>
-        </button>
-        <button class="cat-filter-btn" data-cat="denim" onclick="filterCatalog('denim', this)">
-          <span class="cat-btn-icon">👖</span>
-          <span>Denim &amp; Trousers</span>
-        </button>
-        <button class="cat-filter-btn" data-cat="ethnic" onclick="filterCatalog('ethnic', this)">
-          <span class="cat-btn-icon">👑</span>
-          <span>Festive &amp; Ethnic Wear</span>
-        </button>
+      <!-- Ecommerce Catalogue Toolbar & Controls -->
+      <div class="catalog-toolbar-wrapper">
+        <!-- Search and Sort Controls -->
+        <div class="catalog-search-sort-bar">
+          <div class="catalog-search-box">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" id="catalog-search-input" class="catalog-search-input" placeholder="Search styles, brands, TechnoSport, jackets, shirts..." oninput="handleCatalogSearch(this.value)">
+          </div>
+
+          <div class="catalog-filter-controls">
+            <label class="catalog-in-stock-label" title="Show only currently available products">
+              <input type="checkbox" id="catalog-in-stock-check" onchange="toggleInStockFilter(this.checked)">
+              <span>In Stock Only</span>
+            </label>
+
+            <select id="catalog-sort-select" class="catalog-sort-select" onchange="handleCatalogSort(this.value)" aria-label="Sort products">
+              <option value="featured">Sort: Featured</option>
+              <option value="price_asc">Price: Low to High</option>
+              <option value="price_desc">Price: High to Low</option>
+              <option value="discount">Discount: High to Low</option>
+              <option value="newest">Newest Arrivals</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Filter Bar with All Categories including TechnoSport & Hosiery -->
+        <div class="filter-bar" id="category-filter-bar">
+          <button class="cat-filter-btn btn-gold active" data-cat="all" onclick="filterCatalog('all', this)">
+            <span class="cat-btn-icon">✨</span>
+            <span>All Collections</span>
+          </button>
+          <button class="cat-filter-btn" data-cat="technosport" onclick="filterCatalog('technosport', this)">
+            <span class="cat-btn-icon">⚡</span>
+            <span>TechnoSport <strong class="chip-discount-badge">10% OFF</strong></span>
+          </button>
+          <button class="cat-filter-btn" data-cat="hosiery" onclick="filterCatalog('hosiery', this)">
+            <span class="cat-btn-icon">🧦</span>
+            <span>Hosiery <strong class="chip-discount-badge">10% OFF</strong></span>
+          </button>
+          <button class="cat-filter-btn" data-cat="jackets" onclick="filterCatalog('jackets', this)">
+            <span class="cat-btn-icon">🧥</span>
+            <span>Bomber &amp; TPU Jackets</span>
+          </button>
+          <button class="cat-filter-btn" data-cat="shirts" onclick="filterCatalog('shirts', this)">
+            <span class="cat-btn-icon">👔</span>
+            <span>Cotton &amp; Printed Shirts</span>
+          </button>
+          <button class="cat-filter-btn" data-cat="casual" onclick="filterCatalog('casual', this)">
+            <span class="cat-btn-icon">👕</span>
+            <span>T-Shirts &amp; Track Combos</span>
+          </button>
+          <button class="cat-filter-btn" data-cat="denim" onclick="filterCatalog('denim', this)">
+            <span class="cat-btn-icon">👖</span>
+            <span>Denim &amp; Trousers</span>
+          </button>
+          <button class="cat-filter-btn" data-cat="ethnic" onclick="filterCatalog('ethnic', this)">
+            <span class="cat-btn-icon">👑</span>
+            <span>Festive &amp; Ethnic Wear</span>
+          </button>
+        </div>
+
+        <!-- Dynamic Results Header with Product Count -->
+        <div class="catalog-results-header">
+          <h2 class="catalog-results-title" id="catalog-title">All Clothing Collections</h2>
+          <span class="catalog-count-pill" id="catalog-count-display">Showing 18 Products</span>
+        </div>
       </div>
 
-      <!-- Real Products Grid -->
-      <div id="catalog-products-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 28px;">
-        <!-- Injected via JavaScript from REAL_PRODUCTS in js/data.js -->
+      <!-- Real Products Grid (Rendered dynamically from /api/products) -->
+      <div id="catalog-products-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 24px;">
+        <div style="grid-column: 1 / -1; text-align: center; padding: 50px 20px; color: var(--color-muted);">
+          <div style="display: inline-block; width: 36px; height: 36px; border: 3px solid var(--color-gold-border); border-top-color: var(--color-gold); border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 12px;"></div>
+          <p>Loading Hiramoti collection...</p>
+        </div>
       </div>
     </div>
   </main>
+
+  <!-- PRODUCT DETAIL MODAL -->
+  <div class="product-modal-backdrop" id="product-detail-modal" onclick="handleDetailBackdropClick(event)">
+    <div class="product-modal-card" role="dialog" aria-modal="true" aria-labelledby="modal-product-title">
+      <button type="button" class="product-modal-close" onclick="closeProductDetail()" aria-label="Close Product Details">&times;</button>
+      
+      <div class="product-modal-img-col">
+        <img id="modal-product-img" src="" alt="Product Image" onerror="this.onerror=null; this.src='assets/images/hiramoti_header_logo.png';">
+      </div>
+
+      <div class="product-modal-content-col">
+        <div class="product-brand-line" style="margin-bottom: 10px;">
+          <span class="product-brand-name" id="modal-product-brand" style="font-size: 0.8rem;">TECHNOSPORT</span>
+          <span class="product-brand-badge" id="modal-product-badge">NEW</span>
+        </div>
+
+        <h3 id="modal-product-title" style="font-family: var(--font-serif); font-size: 1.5rem; color: var(--color-burgundy-dark); margin-bottom: 4px; line-height: 1.3;"></h3>
+        <p id="modal-product-marathi" style="font-family: var(--font-marathi); font-size: 0.95rem; color: var(--color-gold); margin-bottom: 12px;"></p>
+
+        <div class="product-price-section" style="margin-bottom: 16px;">
+          <span class="product-sale-price" id="modal-product-price" style="font-size: 1.7rem;"></span>
+          <span class="product-original-price" id="modal-product-original" style="font-size: 1rem;"></span>
+          <span class="product-discount-badge" id="modal-product-discount" style="font-size: 0.8rem; padding: 3px 9px;"></span>
+        </div>
+
+        <div id="modal-product-kpi" style="margin-bottom: 16px; font-size: 0.82rem; display: flex; flex-wrap: wrap; gap: 12px;">
+          <span id="modal-product-stock" class="stock-indicator in-stock">● In Stock</span>
+          <span id="modal-product-code" style="color: var(--color-muted);">SKU: HM-TS-01</span>
+        </div>
+
+        <div style="margin-bottom: 16px;">
+          <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 700; color: var(--color-gold); margin-bottom: 6px;">Available Sizes</div>
+          <div id="modal-product-sizes" style="display: flex; flex-wrap: wrap; gap: 6px;"></div>
+        </div>
+
+        <div style="margin-bottom: 24px;">
+          <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 700; color: var(--color-gold); margin-bottom: 6px;">Garment Details &amp; Specifications</div>
+          <p id="modal-product-desc" style="font-size: 0.86rem; color: var(--color-muted); line-height: 1.6;"></p>
+        </div>
+
+        <div style="margin-top: auto; display: flex; flex-wrap: wrap; gap: 10px;">
+          <button type="button" class="btn btn-gold" style="flex: 1 1 140px; padding: 10px 16px;" onclick="bookVisitForModalProduct()">
+            Book Showroom Trial
+          </button>
+          <a id="modal-product-wa-btn" href="#" target="_blank" rel="noopener" class="btn btn-whatsapp" style="flex: 1 1 140px; padding: 10px 16px; display: inline-flex; align-items: center; justify-content: center; gap: 6px;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.711 2.598 2.664-.699c.971.53 1.83.81 2.802.81 3.181 0 5.767-2.587 5.768-5.766.001-3.182-2.586-5.768-5.774-5.768zm7.391 5.766c-.001 4.075-3.316 7.39-7.391 7.39-1.282 0-2.485-.333-3.535-.916l-4.148 1.088 1.107-4.045c-.682-1.12-1.045-2.417-1.045-3.517 0-4.076 3.315-7.391 7.391-7.391 4.076 0 7.392 3.315 7.392 7.391z"/></svg>
+            <span>Inquire on WhatsApp</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- FOOTER -->
     <!-- ======================================================== -->
@@ -222,11 +314,12 @@
         <h4 class="footer-heading">Collections</h4>
         <ul class="footer-links">
           <li><a href="collections.html?category=all">All Collections</a></li>
+          <li><a href="collections.html?category=technosport">TechnoSport (10% OFF)</a></li>
+          <li><a href="collections.html?category=hosiery">Hosiery (10% OFF)</a></li>
           <li><a href="collections.html?category=jackets">Bomber &amp; TPU Jackets</a></li>
           <li><a href="collections.html?category=shirts">Cotton &amp; Floral Shirts</a></li>
           <li><a href="collections.html?category=casual">T-Shirt Combos</a></li>
           <li><a href="catalog.html">Latest Offers</a></li>
-          <li><a href="collections.html">Catalogue</a></li>
         </ul>
       </div>
 
@@ -701,90 +794,288 @@
   <script src="js/data.js"></script>
   <script src="js/api-bridge.js"></script>
   <script>
+    var currentCategory = "all";
+    var currentSearch = "";
+    var currentSort = "featured";
+    var inStockOnly = false;
+    var cachedProducts = [];
+    var activeModalProduct = null;
+    var searchTimer = null;
+
+    var categoryTitles = {
+      all: "All Clothing Collections",
+      technosport: "TechnoSport Performance Wear (10% OFF)",
+      hosiery: "Premium Hosiery & Innerwear (10% OFF)",
+      jackets: "Bomber & TPU Weatherproof Jackets",
+      shirts: "Pure Cotton & Printed Shirts",
+      casual: "T-Shirts & Track Combos",
+      denim: "Branded Denim & Trousers",
+      ethnic: "Festive & Wedding Ethnic Wear"
+    };
+
     document.addEventListener("DOMContentLoaded", function() {
-      // Check if URL has ?category=...
       var params = new URLSearchParams(window.location.search);
-      var catParam = params.get("category") || "all";
+      currentCategory = (params.get("category") || "all").toLowerCase();
       
-      var matchingBtn = document.querySelector(".cat-filter-btn[data-cat='" + catParam + "']");
-      if (matchingBtn) {
-        document.querySelectorAll(".cat-filter-btn").forEach(function(b) {
-          b.classList.remove("btn-gold");
-          b.classList.remove("active");
-        });
-        matchingBtn.classList.add("btn-gold");
-        matchingBtn.classList.add("active");
-      }
-      renderRealCatalog(catParam);
+      updateCategoryUI(currentCategory);
+      loadCatalog();
     });
 
-    function renderRealCatalog(filterCategory) {
+    function updateCategoryUI(cat) {
+      document.querySelectorAll(".cat-filter-btn").forEach(function(b) {
+        if (b.getAttribute("data-cat") === cat) {
+          b.classList.add("btn-gold", "active");
+        } else {
+          b.classList.remove("btn-gold", "active");
+        }
+      });
+      var titleEl = document.getElementById("catalog-title");
+      if (titleEl) {
+        titleEl.textContent = categoryTitles[cat] || (cat.charAt(0).toUpperCase() + cat.slice(1) + " Collection");
+      }
+    }
+
+    async function loadCatalog() {
       var grid = document.getElementById("catalog-products-grid");
       if (!grid) return;
 
-      var items = REAL_PRODUCTS.filter(function(p) {
-        if (filterCategory === "all") return true;
-        if (filterCategory === "jackets") return p.subtype === "jackets";
-        if (filterCategory === "shirts") return p.subtype === "formal_shirts" || p.subtype === "party_wear";
-        if (filterCategory === "casual") return p.subtype === "casual_denim";
-        if (filterCategory === "denim") return p.subtype === "denim";
-        if (filterCategory === "ethnic") return p.subtype === "ethnic";
+      var query = new URLSearchParams();
+      if (currentCategory && currentCategory !== "all") query.set("category", currentCategory);
+      if (currentSearch) query.set("search", currentSearch);
+      if (currentSort && currentSort !== "featured") query.set("sort", currentSort);
+      if (inStockOnly) query.set("in_stock", "true");
+
+      try {
+        var res = await fetch("/api/products?" + query.toString());
+        if (res.ok) {
+          var data = await res.json();
+          cachedProducts = data.products || [];
+          renderProducts(cachedProducts, data.count, data.category_counts);
+          return;
+        }
+      } catch (err) {
+        console.warn("Could not fetch /api/products, using local fallback data:", err);
+      }
+
+      // Resilient fallback to REAL_PRODUCTS if server unreachable
+      var fallback = (typeof REAL_PRODUCTS !== "undefined" ? REAL_PRODUCTS : []).filter(function(p) {
+        if (currentCategory === "all") return true;
+        if (currentCategory === "jackets") return p.subtype === "jackets";
+        if (currentCategory === "shirts") return p.subtype === "formal_shirts" || p.subtype === "party_wear";
+        if (currentCategory === "casual") return p.subtype === "casual_denim";
+        if (currentCategory === "denim") return p.subtype === "denim";
+        if (currentCategory === "ethnic") return p.subtype === "ethnic";
+        if (currentCategory === "technosport") return p.category === "technosport" || p.subtype === "technosport";
+        if (currentCategory === "hosiery") return p.category === "hosiery" || p.subtype === "hosiery";
         return true;
       });
+      cachedProducts = fallback;
+      renderProducts(fallback, fallback.length, {});
+    }
 
-      grid.innerHTML = items.map(function(p) {
-        var isOutOfStock = (p.stock !== undefined && p.stock <= 0) || p.status === 'out_of_stock';
-        var stockBadge = isOutOfStock
-          ? `<span class="badge-tag" style="position: absolute; top: 12px; right: 12px; background: #dc2626; color: #fff; font-size: 0.72rem; font-weight: 700; padding: 4px 10px; border-radius: var(--radius-full); z-index: 2;">OUT OF STOCK</span>`
-          : (p.discount ? `<span style="position: absolute; top: 12px; right: 12px; background: var(--color-burgundy); color: #fff; font-size: 0.72rem; font-weight: 700; padding: 4px 10px; border-radius: var(--radius-full);">${p.discount}</span>` : "");
+    function renderProducts(products, count, categoryCounts) {
+      var grid = document.getElementById("catalog-products-grid");
+      var countEl = document.getElementById("catalog-count-display");
+      if (!grid) return;
+
+      if (countEl) {
+        var catName = currentCategory === "all" ? "All Collections" : (categoryTitles[currentCategory] || currentCategory);
+        countEl.textContent = "Showing " + (count || products.length) + " Product" + (products.length === 1 ? "" : "s");
+      }
+
+      if (!products || products.length === 0) {
+        grid.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; background: rgba(255,255,255,0.7); border-radius: var(--radius-md); border: 1.5px dashed var(--color-gold-border);">' +
+          '<div style="font-size: 2.4rem; margin-bottom: 12px;">👔</div>' +
+          '<h3 style="font-family: var(--font-serif); font-size: 1.4rem; color: var(--color-burgundy-dark); margin-bottom: 8px;">No Garments Found</h3>' +
+          '<p style="color: var(--color-muted); font-size: 0.9rem; max-width: 440px; margin: 0 auto 18px;">We could not find items matching your criteria. Try adjusting your search query or selecting a different category.</p>' +
+          '<button type="button" class="btn btn-outline btn-sm" onclick="resetFilters()">Reset All Filters</button>' +
+        '</div>';
+        return;
+      }
+
+      grid.innerHTML = products.map(function(p) {
+        var isOut = (p.stock !== undefined && p.stock <= 0) || p.status === "out_of_stock";
+        var brandName = (p.brand || (p.category === "technosport" ? "TechnoSport" : (p.category === "hosiery" ? "Hiramoti Hosiery" : "Hiramoti Collection"))).toUpperCase();
+        var origPrice = p.original_price || p.originalPrice;
+        var hasDiscount = (origPrice && origPrice > p.price) || p.discount;
+        var discLabel = p.discount || (hasDiscount ? Math.round(((origPrice - p.price) / origPrice) * 100) + "% OFF" : "");
         
-        var actionBtns = isOutOfStock
-          ? `<a href="https://wa.me/919595989815?text=${encodeURIComponent("Hello Hiramoti Collection Satara! I saw that " + p.name + " is currently Out of Stock. Please notify me when restocked.")}" target="_blank" rel="noopener" class="btn btn-outline btn-sm" style="padding: 7px 12px; font-size: 0.75rem; color: #f87171; border-color: #f87171;">
-              Notify Restock
-            </a>`
-          : `<button type="button" class="btn btn-outline btn-sm" onclick="openBookVisitModal()" style="padding: 7px 10px; font-size: 0.75rem;">
-              Book Trial
-            </button>
-            <a href="https://wa.me/919595989815?text=${encodeURIComponent("Hello Hiramoti Collection Satara! I want to order/inquire about: " + p.name + " (Price: Rs." + p.price + "). Please confirm sizes.")}" target="_blank" rel="noopener" class="btn btn-whatsapp btn-sm" style="padding: 7px 12px; font-size: 0.75rem;">
-              Enquire
-            </a>`;
+        var waMsg = "Hello Hiramoti Collection Satara! I want to inquire about: " + p.name + " (" + brandName + ", Price: Rs." + p.price + (discLabel ? ", " + discLabel : "") + "). Please share available sizes at Powai Naka showroom.";
+        var waLink = "https://wa.me/919595989815?text=" + encodeURIComponent(waMsg);
 
-        return `
-          <div class="gallery-item" style="border: 1.5px solid var(--color-gold-border); border-radius: var(--radius-md); overflow: hidden; background: rgba(255, 255, 255, 0.94); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); box-shadow: var(--shadow-sm); display: flex; flex-direction: column;">
-            <div style="position: relative; aspect-ratio: 4/5; overflow: hidden; background: #000;">
-              <img src="${p.image}" alt="${p.name}" style="width: 100%; height: 100%; object-fit: cover;">
-              <span class="badge-tag badge-gold" style="position: absolute; top: 12px; left: 12px; font-size: 0.7rem; font-weight: 700;">${p.badge || "Satara Special"}</span>
-              ${stockBadge}
-            </div>
-            <div style="padding: 20px; display: flex; flex-direction: column; flex: 1;">
-              <span style="font-size: 0.72rem; text-transform: uppercase; color: var(--color-gold); font-weight: 700; letter-spacing: 0.08em; margin-bottom: 4px;">Powai Naka Store</span>
-              <h4 style="font-family: var(--font-serif); font-size: 1.2rem; font-weight: 600; color: var(--color-burgundy-dark); margin-bottom: 4px;">${p.name}</h4>
-              <p style="font-size: 0.82rem; color: var(--color-gold); font-family: var(--font-marathi); margin-bottom: 10px;">${p.marathi || ""}</p>
-              <p style="font-size: 0.8rem; color: var(--color-muted); line-height: 1.5; margin-bottom: 16px;">${p.description}</p>
-              <div style="margin-top: auto; display: flex; align-items: center; justify-content: space-between; border-top: 1px solid var(--color-border); padding-top: 14px; gap: 8px;">
-                <div>
-                  <span style="font-size: 1.25rem; font-weight: 700; color: var(--color-burgundy-dark);">₹${p.price}</span>
-                  ${p.originalPrice ? `<span style="font-size: 0.8rem; color: var(--color-muted); text-decoration: line-through; margin-left: 6px;">₹${p.originalPrice}</span>` : ""}
-                </div>
-                <div style="display: flex; gap: 6px;">
-                  ${actionBtns}
-                </div>
-              </div>
-            </div>
-          </div>
-        `;
+        return '<div class="ecommerce-product-card">' +
+          '<!-- FULL PRODUCT IMAGE CONTAINER (Contain, No Crop, Clean Canvas) -->' +
+          '<div class="product-image-wrapper" onclick="openProductDetail(\'' + p.id + '\')" title="Click to view details for ' + p.name + '">' +
+            '<img src="' + p.image + '" alt="' + p.name + '" loading="lazy" onerror="this.onerror=null; this.src=\'assets/images/hiramoti_header_logo.png\'; this.style.padding=\'28px\';">' +
+          '</div>' +
+
+          '<!-- BELOW-IMAGE KPI & INFORMATION LAYOUT -->' +
+          '<div class="product-kpi-container">' +
+            '<div class="product-brand-line">' +
+              '<span class="product-brand-name">' + brandName + '</span>' +
+              (p.badge ? ('<span class="product-brand-badge">' + p.badge + '</span>') : '') +
+            '</div>' +
+
+            '<a class="product-title-link" onclick="openProductDetail(\'' + p.id + '\')">' +
+              '<h3 class="product-title">' + p.name + '</h3>' +
+            '</a>' +
+
+            (p.marathi_name || p.marathi ? ('<p class="product-marathi-title">' + (p.marathi_name || p.marathi) + '</p>') : '') +
+            (p.description ? ('<p class="product-short-desc">' + p.description + '</p>') : '') +
+
+            '<div class="product-price-section">' +
+              '<span class="product-sale-price">₹' + p.price + '</span>' +
+              (origPrice && origPrice > p.price ? ('<span class="product-original-price">₹' + origPrice + '</span>') : '') +
+              (discLabel ? ('<span class="product-discount-badge">' + discLabel + '</span>') : '') +
+            '</div>' +
+
+            '<div class="product-kpi-status-row">' +
+              '<span class="stock-indicator ' + (isOut ? 'out-of-stock' : 'in-stock') + '">' +
+                (isOut ? '● Out of Stock' : ('● In Stock' + (p.stock !== undefined ? ' (' + p.stock + ')' : ''))) +
+              '</span>' +
+              (p.sizes ? ('<span class="product-sizes-pill" title="Sizes: ' + p.sizes + '">' + p.sizes + '</span>') : '') +
+            '</div>' +
+
+            '<div class="product-card-actions">' +
+              '<button type="button" class="btn-card-details" onclick="openProductDetail(\'' + p.id + '\')">View Details</button>' +
+              '<a href="' + waLink + '" target="_blank" rel="noopener" class="btn-card-enquire">' +
+                '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z"/></svg>' +
+                '<span>Enquire</span>' +
+              '</a>' +
+            '</div>' +
+          '</div>' +
+        '</div>';
       }).join("");
     }
 
     function filterCatalog(category, btn) {
-      document.querySelectorAll(".cat-filter-btn").forEach(function(b) {
-        b.classList.remove("btn-gold");
-        b.classList.remove("active");
-      });
-      btn.classList.add("btn-gold");
-      btn.classList.add("active");
-      renderRealCatalog(category);
+      currentCategory = category;
+      updateCategoryUI(category);
+      // Update browser URL without reload
+      var newUrl = window.location.pathname + (category === "all" ? "" : "?category=" + category);
+      window.history.pushState({ category: category }, "", newUrl);
+      loadCatalog();
     }
+
+    function handleCatalogSearch(val) {
+      currentSearch = (val || "").trim();
+      clearTimeout(searchTimer);
+      searchTimer = setTimeout(function() {
+        loadCatalog();
+      }, 250);
+    }
+
+    function handleCatalogSort(val) {
+      currentSort = val || "featured";
+      loadCatalog();
+    }
+
+    function toggleInStockFilter(checked) {
+      inStockOnly = !!checked;
+      loadCatalog();
+    }
+
+    function resetFilters() {
+      currentCategory = "all";
+      currentSearch = "";
+      currentSort = "featured";
+      inStockOnly = false;
+      var sInput = document.getElementById("catalog-search-input");
+      if (sInput) sInput.value = "";
+      var sortSelect = document.getElementById("catalog-sort-select");
+      if (sortSelect) sortSelect.value = "featured";
+      var stockCheck = document.getElementById("catalog-in-stock-check");
+      if (stockCheck) stockCheck.checked = false;
+      updateCategoryUI("all");
+      window.history.pushState({}, "", window.location.pathname);
+      loadCatalog();
+    }
+
+    function openProductDetail(productId) {
+      var p = cachedProducts.find(function(item) { return item.id === productId; });
+      if (!p) return;
+      activeModalProduct = p;
+
+      var brandName = (p.brand || (p.category === "technosport" ? "TechnoSport" : "Hiramoti Collection")).toUpperCase();
+      var origPrice = p.original_price || p.originalPrice;
+      var discLabel = p.discount || ((origPrice && origPrice > p.price) ? Math.round(((origPrice - p.price) / origPrice) * 100) + "% OFF" : "");
+      var isOut = (p.stock !== undefined && p.stock <= 0) || p.status === "out_of_stock";
+
+      document.getElementById("modal-product-img").src = p.image || "assets/images/hiramoti_header_logo.png";
+      document.getElementById("modal-product-brand").textContent = brandName;
+      
+      var badgeEl = document.getElementById("modal-product-badge");
+      if (p.badge) {
+        badgeEl.textContent = p.badge;
+        badgeEl.style.display = "inline-block";
+      } else {
+        badgeEl.style.display = "none";
+      }
+
+      document.getElementById("modal-product-title").textContent = p.name;
+      document.getElementById("modal-product-marathi").textContent = p.marathi_name || p.marathi || "";
+      document.getElementById("modal-product-price").textContent = "₹" + p.price;
+      
+      var origEl = document.getElementById("modal-product-original");
+      if (origPrice && origPrice > p.price) {
+        origEl.textContent = "₹" + origPrice;
+        origEl.style.display = "inline-block";
+      } else {
+        origEl.style.display = "none";
+      }
+
+      var discEl = document.getElementById("modal-product-discount");
+      if (discLabel) {
+        discEl.textContent = discLabel;
+        discEl.style.display = "inline-block";
+      } else {
+        discEl.style.display = "none";
+      }
+
+      var stockEl = document.getElementById("modal-product-stock");
+      stockEl.className = "stock-indicator " + (isOut ? "out-of-stock" : "in-stock");
+      stockEl.textContent = isOut ? "● Currently Out of Stock" : ("● In Stock (" + (p.stock !== undefined ? p.stock : 10) + " available at Powai Naka)");
+
+      document.getElementById("modal-product-code").textContent = "SKU: " + (p.code || p.id);
+
+      var sizesContainer = document.getElementById("modal-product-sizes");
+      var sizes = (p.sizes || "M, L, XL, XXL").split(",").map(function(s) { return s.trim(); }).filter(Boolean);
+      sizesContainer.innerHTML = sizes.map(function(s) {
+        return '<span style="border: 1px solid var(--color-gold-border); background: #FAF4EB; color: var(--color-burgundy-dark); font-weight: 700; font-size: 0.78rem; padding: 4px 10px; border-radius: 4px;">' + s + '</span>';
+      }).join("");
+
+      document.getElementById("modal-product-desc").textContent = p.description || "Authentic Hiramoti Collection garment curated with premium stitching, high durability, and genuine comfort.";
+
+      var waMsg = "Hello Hiramoti Collection Satara! I am interested in " + p.name + " (" + brandName + ", Price: Rs." + p.price + "). Can I try this in store or check sizing?";
+      document.getElementById("modal-product-wa-btn").href = "https://wa.me/919595989815?text=" + encodeURIComponent(waMsg);
+
+      document.getElementById("product-detail-modal").classList.add("open");
+      document.body.style.overflow = "hidden";
+    }
+
+    function closeProductDetail() {
+      var modal = document.getElementById("product-detail-modal");
+      if (modal) modal.classList.remove("open");
+      document.body.style.overflow = "";
+      activeModalProduct = null;
+    }
+
+    function handleDetailBackdropClick(e) {
+      if (e.target.id === "product-detail-modal") {
+        closeProductDetail();
+      }
+    }
+
+    function bookVisitForModalProduct() {
+      closeProductDetail();
+      if (typeof openBookVisitModal === "function") {
+        openBookVisitModal();
+      }
+    }
+
+    document.addEventListener("keydown", function(e) {
+      if (e.key === "Escape") closeProductDetail();
+    });
   </script>
 </body>
 </html>

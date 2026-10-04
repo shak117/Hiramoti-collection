@@ -42,6 +42,8 @@ window.fetch = function(input, init = {}) {
 
 let currentUser = null;
 let cachedProducts = [];
+let cachedCategories = [];
+let cachedDiscounts = [];
 let cachedReels = [];
 let cachedImages = [];
 let cachedEnquiries = [];
@@ -161,6 +163,8 @@ function showDashboardUI() {
   // Load all initial data
   loadDashboardData();
   loadProducts();
+  loadCategories();
+  loadDiscounts();
   loadReels();
   loadImages();
   loadEnquiries();
@@ -292,6 +296,8 @@ function showSection(sectionId) {
   const titles = {
     overview: "Dashboard Overview",
     products: "Product Management",
+    categories: "Categories & Brand Architecture",
+    discounts: "Promotions & Dynamic Discount Engine",
     stock: "Quick Price & Stock Management",
     images: "Image Manager & Media Library",
     reels: "Instagram Reels & Video Feed",
@@ -304,6 +310,8 @@ function showSection(sectionId) {
   // Refresh section data
   if (sectionId === "overview") loadDashboardData();
   if (sectionId === "products") renderProductsTable(cachedProducts);
+  if (sectionId === "categories") loadCategories();
+  if (sectionId === "discounts") loadDiscounts();
   if (sectionId === "stock") renderStockTable(cachedProducts);
   if (sectionId === "images") loadImages();
   if (sectionId === "reels") renderReelsCards(cachedReels);
@@ -419,7 +427,10 @@ function renderProductsTable(products) {
           <img src="../${p.image}" alt="${p.name}" class="item-thumb" onerror="this.src='../assets/images/real_store_shirts.jpg'">
           <div class="item-titles">
             <h4>${p.name}</h4>
-            <span>${p.marathi_name || ""}</span>
+            <div style="display:flex;align-items:center;gap:6px;margin-top:2px;">
+              <span class="badge-tag" style="background:rgba(212,175,55,0.15);color:var(--color-gold);border:1px solid rgba(212,175,55,0.35);font-size:0.65rem;padding:1px 5px;">${p.brand || "Hiramoti"}</span>
+              <span style="font-size:0.75rem;color:var(--color-white-faint);">${p.marathi_name || ""}</span>
+            </div>
           </div>
         </div>
       </td>
@@ -457,7 +468,7 @@ function renderProductsTable(products) {
 
 function filterProductsTable() {
   const query = document.getElementById("product-search-input").value.trim().toLowerCase();
-  const catFilter = document.getElementById("product-category-filter").value;
+  const catFilter = document.getElementById("product-category-filter").value.toLowerCase();
   const stockFilter = document.getElementById("product-stock-filter").value;
 
   const filtered = cachedProducts.filter(p => {
@@ -466,12 +477,33 @@ function filterProductsTable() {
       const name = (p.name || "").toLowerCase();
       const marathi = (p.marathi_name || "").toLowerCase();
       const code = (p.id || "").toLowerCase();
-      if (!name.includes(query) && !marathi.includes(query) && !code.includes(query)) {
+      const brand = (p.brand || "").toLowerCase();
+      if (!name.includes(query) && !marathi.includes(query) && !code.includes(query) && !brand.includes(query)) {
         return false;
       }
     }
     // Category
-    if (catFilter !== "all" && p.category !== catFilter) return false;
+    if (catFilter !== "all") {
+      const cat = (p.category || "").toLowerCase();
+      const sub = (p.subtype || "").toLowerCase();
+      if (catFilter === "technosport") {
+        if (cat !== "technosport" && sub !== "technosport") return false;
+      } else if (catFilter === "hosiery") {
+        if (cat !== "hosiery" && sub !== "hosiery") return false;
+      } else if (catFilter === "jackets") {
+        if (sub !== "jackets" && cat !== "jackets") return false;
+      } else if (catFilter === "shirts") {
+        if (!["formal_shirts", "party_wear", "shirts"].includes(sub) && cat !== "shirts") return false;
+      } else if (catFilter === "casual") {
+        if (!["casual_denim", "tshirts", "combos"].includes(sub) && cat !== "casual") return false;
+      } else if (catFilter === "denim") {
+        if (sub !== "denim" && cat !== "denim") return false;
+      } else if (catFilter === "ethnic") {
+        if (sub !== "ethnic" && cat !== "ethnic") return false;
+      } else {
+        if (cat !== catFilter && sub !== catFilter) return false;
+      }
+    }
     // Stock
     if (stockFilter === "in_stock" && (p.stock <= 0 || p.status !== "in_stock")) return false;
     if (stockFilter === "out_of_stock" && p.stock > 0 && p.status === "in_stock") return false;
@@ -486,6 +518,8 @@ function openAddProductModal() {
   document.getElementById("product-modal-title").textContent = "Add New Product";
   document.getElementById("product-id-hidden").value = "";
   document.getElementById("product-form").reset();
+  const brandEl = document.getElementById("prod-brand");
+  if (brandEl) brandEl.value = "Hiramoti Collection";
   document.getElementById("prod-stock").value = 15;
   document.getElementById("prod-status").value = "in_stock";
   document.getElementById("prod-image").value = "assets/images/real_store_shirts.jpg";
@@ -500,6 +534,8 @@ function openEditProductModal(productId) {
   document.getElementById("product-id-hidden").value = p.id;
   document.getElementById("prod-name").value = p.name || "";
   document.getElementById("prod-marathi").value = p.marathi_name || "";
+  const brandEl = document.getElementById("prod-brand");
+  if (brandEl) brandEl.value = p.brand || "Hiramoti Collection";
   document.getElementById("prod-category").value = p.category || "mens";
   document.getElementById("prod-subtype").value = p.subtype || "jackets";
   document.getElementById("prod-price").value = p.price || "";
@@ -524,9 +560,11 @@ async function handleProductFormSubmit(e) {
   const id = document.getElementById("product-id-hidden").value;
   const isEdit = !!id;
 
+  const brandEl = document.getElementById("prod-brand");
   const payload = {
     name: document.getElementById("prod-name").value.trim(),
     marathi_name: document.getElementById("prod-marathi").value.trim(),
+    brand: brandEl ? (brandEl.value.trim() || "Hiramoti Collection") : "Hiramoti Collection",
     category: document.getElementById("prod-category").value,
     subtype: document.getElementById("prod-subtype").value,
     price: parseFloat(document.getElementById("prod-price").value),
@@ -696,6 +734,405 @@ async function saveQuickPriceStock(productId) {
   } catch (err) {
     showToast("Network error saving price & stock", "danger");
   }
+}
+
+// ==========================================================================
+// 5B. CATEGORIES & BRANDS ARCHITECTURE
+// ==========================================================================
+async function loadCategories() {
+  try {
+    const res = await fetch("/api/admin/categories");
+    if (!res.ok) return;
+    const data = await res.json();
+    cachedCategories = data.categories || [];
+    renderCategoriesTable(cachedCategories);
+  } catch (err) {
+    console.error("Error loading categories:", err);
+  }
+}
+
+function renderCategoriesTable(categories) {
+  const tbody = document.getElementById("categories-table-body");
+  if (!tbody) return;
+
+  if (!categories || categories.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="8" class="text-center py-6 text-muted">No categories configured yet.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = categories.map(c => `
+    <tr>
+      <td>
+        <strong style="color: var(--color-white); font-size: 0.95rem;">${c.name}</strong>
+      </td>
+      <td>
+        <span style="font-family: var(--font-marathi); color: var(--color-gold-light);">${c.marathi_name || "-"}</span>
+      </td>
+      <td>
+        <code style="background: rgba(0,0,0,0.4); padding: 2px 6px; border-radius: 4px; color: var(--color-gold);">${c.slug}</code>
+      </td>
+      <td style="font-size: 1.2rem; text-align: center;">${c.icon || "✨"}</td>
+      <td>
+        ${c.tag ? `<span class="badge-tag" style="background: rgba(212,175,55,0.15); color: var(--color-gold); border: 1px solid rgba(212,175,55,0.4);">${c.tag}</span>` : `<span style="color: var(--color-white-faint);">-</span>`}
+      </td>
+      <td><strong>${c.display_order || 0}</strong></td>
+      <td>
+        <span class="status-badge ${c.is_active ? 'status-badge-in' : 'status-badge-out'}">
+          ${c.is_active ? 'Active' : 'Disabled'}
+        </span>
+      </td>
+      <td>
+        <div class="table-actions">
+          <button class="btn-icon" onclick="openEditCategoryModal('${c.id}')" title="Edit Category">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+          </button>
+          <button class="btn-icon btn-icon-danger" onclick="confirmDeleteCategory('${c.id}', '${(c.name || '').replace(/'/g, "\\'")}')" title="Delete Category">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+          </button>
+        </div>
+      </td>
+    </tr>
+  `).join("");
+}
+
+function openAddCategoryModal() {
+  document.getElementById("category-modal-title").textContent = "Add New Category";
+  document.getElementById("category-id-hidden").value = "";
+  document.getElementById("category-form").reset();
+  document.getElementById("cat-order").value = (cachedCategories.length + 1);
+  document.getElementById("cat-is-active").checked = true;
+  document.getElementById("category-modal").classList.add("show");
+}
+
+function openEditCategoryModal(catId) {
+  const c = cachedCategories.find(item => item.id === catId);
+  if (!c) return;
+
+  document.getElementById("category-modal-title").textContent = `Edit Category (${c.name})`;
+  document.getElementById("category-id-hidden").value = c.id;
+  document.getElementById("cat-name").value = c.name || "";
+  document.getElementById("cat-marathi").value = c.marathi_name || "";
+  document.getElementById("cat-slug").value = c.slug || "";
+  document.getElementById("cat-icon").value = c.icon || "";
+  document.getElementById("cat-tag").value = c.tag || "";
+  document.getElementById("cat-order").value = c.display_order !== undefined ? c.display_order : 1;
+  document.getElementById("cat-is-active").checked = !!c.is_active;
+
+  document.getElementById("category-modal").classList.add("show");
+}
+
+function closeCategoryModal() {
+  document.getElementById("category-modal").classList.remove("show");
+}
+
+async function handleCategoryFormSubmit(e) {
+  e.preventDefault();
+  const id = document.getElementById("category-id-hidden").value;
+  const isEdit = !!id;
+
+  const payload = {
+    name: document.getElementById("cat-name").value.trim(),
+    marathi_name: document.getElementById("cat-marathi").value.trim(),
+    slug: document.getElementById("cat-slug").value.trim().toLowerCase(),
+    icon: document.getElementById("cat-icon").value.trim() || "✨",
+    tag: document.getElementById("cat-tag").value.trim(),
+    display_order: parseInt(document.getElementById("cat-order").value, 10) || 1,
+    is_active: document.getElementById("cat-is-active").checked ? 1 : 0
+  };
+
+  const btn = document.getElementById("btn-save-category");
+  btn.disabled = true;
+  btn.textContent = "Saving...";
+
+  try {
+    const url = isEdit ? `/api/admin/categories/${id}` : "/api/admin/categories";
+    const method = isEdit ? "PUT" : "POST";
+
+    const res = await fetch(url, {
+      method: method,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+
+    const data = await res.json();
+    if (res.ok && data.success) {
+      showToast(isEdit ? "Category updated successfully!" : "Category created successfully!", "success");
+      closeCategoryModal();
+      await loadCategories();
+    } else {
+      showToast(data.error || "Failed to save category", "danger");
+    }
+  } catch (err) {
+    showToast("Network error while saving category", "danger");
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Save Category";
+  }
+}
+
+function confirmDeleteCategory(catId, catName) {
+  openConfirmModal(
+    "Delete Category",
+    `Are you sure you want to delete this category? Products in this category will remain, but will lose this grouping.<br><br><strong>${catName}</strong> (<code>${catId}</code>)`,
+    async () => {
+      try {
+        const res = await fetch(`/api/admin/categories/${catId}`, { method: "DELETE" });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          showToast(`Category '${catName}' deleted.`, "success");
+          await loadCategories();
+        } else {
+          showToast(data.error || "Failed to delete category", "danger");
+        }
+      } catch (err) {
+        showToast("Error deleting category", "danger");
+      }
+    }
+  );
+}
+
+// ==========================================================================
+// 5C. PROMOTIONS & DYNAMIC DISCOUNTS MANAGEMENT
+// ==========================================================================
+async function loadDiscounts() {
+  try {
+    const res = await fetch("/api/admin/discounts");
+    if (!res.ok) return;
+    const data = await res.json();
+    cachedDiscounts = data.rules || [];
+    renderDiscountsTable(cachedDiscounts);
+    updateTechnoRuleCard(cachedDiscounts);
+  } catch (err) {
+    console.error("Error loading discounts:", err);
+  }
+}
+
+function updateTechnoRuleCard(rules) {
+  const technoRule = rules.find(r => (r.id === "RULE-TECHNO-10" || r.target_value === "technosport"));
+  const toggleBtn = document.getElementById("btn-toggle-techno-rule");
+  if (!toggleBtn) return;
+
+  if (technoRule && technoRule.is_active) {
+    toggleBtn.textContent = "Deactivate 10% Promo";
+    toggleBtn.className = "btn btn-outline-danger btn-sm";
+  } else {
+    toggleBtn.textContent = "Activate 10% Promo";
+    toggleBtn.className = "btn btn-gold btn-sm";
+  }
+}
+
+async function quickToggleTechnoPromo() {
+  const technoRule = cachedDiscounts.find(r => (r.id === "RULE-TECHNO-10" || r.target_value === "technosport"));
+  const newActive = technoRule ? (technoRule.is_active ? 0 : 1) : 1;
+  const payload = {
+    id: "RULE-TECHNO-10",
+    name: "TechnoSport 10% Storewide Launch Offer",
+    target_type: "category",
+    target_value: "technosport",
+    discount_type: "percentage",
+    discount_value: technoRule ? technoRule.discount_value : 10.0,
+    is_active: newActive
+  };
+
+  try {
+    const res = await fetch("/api/admin/discounts", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if (res.ok && data.success) {
+      showToast(newActive ? "TechnoSport 10% promotional discount activated!" : "TechnoSport promotional discount paused.", "success");
+      await loadDiscounts();
+      await loadProducts();
+    } else {
+      showToast(data.error || "Failed to update discount rule", "danger");
+    }
+  } catch (err) {
+    showToast("Network error updating promotion", "danger");
+  }
+}
+
+function editTechnoSportDiscount() {
+  const technoRule = cachedDiscounts.find(r => (r.id === "RULE-TECHNO-10" || r.target_value === "technosport"));
+  if (technoRule) {
+    openEditDiscountModal(technoRule.id);
+  } else {
+    openAddDiscountModal();
+    document.getElementById("disc-name").value = "TechnoSport 10% Promotional Discount";
+    document.getElementById("disc-target-type").value = "category";
+    document.getElementById("disc-target-value").value = "technosport";
+    document.getElementById("disc-value").value = 10;
+  }
+}
+
+function renderDiscountsTable(rules) {
+  const tbody = document.getElementById("discounts-table-body");
+  if (!tbody) return;
+
+  if (!rules || rules.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="6" class="text-center py-6 text-muted">No promotional rules configured.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = rules.map(r => `
+    <tr>
+      <td>
+        <strong style="color: var(--color-white);">${r.name}</strong>
+        <span style="display: block; font-size: 0.72rem; color: var(--color-gold-light); font-family: monospace;">${r.id}</span>
+      </td>
+      <td>
+        <span class="badge-tag" style="background: rgba(255,255,255,0.08); text-transform: uppercase;">${r.target_type}: ${r.target_value}</span>
+      </td>
+      <td>
+        <strong style="color: var(--color-gold); font-size: 1.05rem;">
+          ${r.discount_type === 'percentage' ? `${r.discount_value}% OFF` : `₹${r.discount_value} OFF`}
+        </strong>
+      </td>
+      <td>
+        <span style="font-size: 0.8rem; color: var(--color-white-muted);">
+          ${r.start_date || 'Always'} &rarr; ${r.end_date || 'Ongoing'}
+        </span>
+      </td>
+      <td>
+        <button class="status-badge ${r.is_active ? 'status-badge-in' : 'status-badge-out'}" style="cursor: pointer; border: none;" onclick="toggleDiscountActive('${r.id}')" title="Click to toggle status">
+          ${r.is_active ? 'Active' : 'Paused'}
+        </button>
+      </td>
+      <td>
+        <div class="table-actions">
+          <button class="btn-icon" onclick="openEditDiscountModal('${r.id}')" title="Edit Rule">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+          </button>
+          <button class="btn-icon btn-icon-danger" onclick="confirmDeleteDiscount('${r.id}', '${(r.name || '').replace(/'/g, "\\'")}')" title="Delete Rule">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+          </button>
+        </div>
+      </td>
+    </tr>
+  `).join("");
+}
+
+function openAddDiscountModal() {
+  document.getElementById("discount-modal-title").textContent = "Add Promotion Rule";
+  document.getElementById("discount-id-hidden").value = "";
+  document.getElementById("discount-form").reset();
+  document.getElementById("disc-target-type").value = "category";
+  document.getElementById("disc-target-value").value = "technosport";
+  document.getElementById("disc-type").value = "percentage";
+  document.getElementById("disc-value").value = 10;
+  document.getElementById("disc-is-active").checked = true;
+  document.getElementById("discount-modal").classList.add("show");
+}
+
+function openEditDiscountModal(ruleId) {
+  const r = cachedDiscounts.find(item => item.id === ruleId);
+  if (!r) return;
+
+  document.getElementById("discount-modal-title").textContent = `Edit Promotion (${r.name})`;
+  document.getElementById("discount-id-hidden").value = r.id;
+  document.getElementById("disc-name").value = r.name || "";
+  document.getElementById("disc-target-type").value = r.target_type || "category";
+  document.getElementById("disc-target-value").value = r.target_value || "";
+  document.getElementById("disc-type").value = r.discount_type || "percentage";
+  document.getElementById("disc-value").value = r.discount_value !== undefined ? r.discount_value : 10;
+  document.getElementById("disc-start").value = r.start_date || "";
+  document.getElementById("disc-end").value = r.end_date || "";
+  document.getElementById("disc-is-active").checked = !!r.is_active;
+
+  document.getElementById("discount-modal").classList.add("show");
+}
+
+function closeDiscountModal() {
+  document.getElementById("discount-modal").classList.remove("show");
+}
+
+async function handleDiscountFormSubmit(e) {
+  e.preventDefault();
+  const id = document.getElementById("discount-id-hidden").value;
+
+  const payload = {
+    id: id || undefined,
+    name: document.getElementById("disc-name").value.trim(),
+    target_type: document.getElementById("disc-target-type").value,
+    target_value: document.getElementById("disc-target-value").value.trim().toLowerCase(),
+    discount_type: document.getElementById("disc-type").value,
+    discount_value: parseFloat(document.getElementById("disc-value").value),
+    start_date: document.getElementById("disc-start").value || null,
+    end_date: document.getElementById("disc-end").value || null,
+    is_active: document.getElementById("disc-is-active").checked ? 1 : 0
+  };
+
+  const btn = document.getElementById("btn-save-discount");
+  btn.disabled = true;
+  btn.textContent = "Saving...";
+
+  try {
+    const res = await fetch("/api/admin/discounts", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+
+    const data = await res.json();
+    if (res.ok && data.success) {
+      showToast("Promotion rule saved successfully!", "success");
+      closeDiscountModal();
+      await loadDiscounts();
+      await loadProducts();
+    } else {
+      showToast(data.error || "Failed to save promotion", "danger");
+    }
+  } catch (err) {
+    showToast("Network error while saving promotion", "danger");
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Save Promotion";
+  }
+}
+
+async function toggleDiscountActive(ruleId) {
+  const r = cachedDiscounts.find(item => item.id === ruleId);
+  if (!r) return;
+  const payload = Object.assign({}, r, { is_active: r.is_active ? 0 : 1 });
+
+  try {
+    const res = await fetch("/api/admin/discounts", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if (res.ok && data.success) {
+      showToast(`Promotion '${r.name}' ${payload.is_active ? 'activated' : 'paused'}.`, "success");
+      await loadDiscounts();
+      await loadProducts();
+    }
+  } catch (err) {
+    showToast("Failed to toggle promotion status", "danger");
+  }
+}
+
+function confirmDeleteDiscount(ruleId, ruleName) {
+  openConfirmModal(
+    "Delete Promotion Rule",
+    `Are you sure you want to delete this promotion rule? Products will revert to their standard pricing.<br><br><strong>${ruleName}</strong> (<code>${ruleId}</code>)`,
+    async () => {
+      try {
+        const res = await fetch(`/api/admin/discounts/${ruleId}`, { method: "DELETE" });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          showToast(`Promotion '${ruleName}' deleted.`, "success");
+          await loadDiscounts();
+          await loadProducts();
+        } else {
+          showToast(data.error || "Failed to delete promotion", "danger");
+        }
+      } catch (err) {
+        showToast("Error deleting promotion", "danger");
+      }
+    }
+  );
 }
 
 // ==========================================================================

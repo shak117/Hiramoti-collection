@@ -115,6 +115,16 @@
           <span id="badge-products-count" class="nav-badge">0</span>
         </button>
 
+        <button class="nav-item" data-section="categories" onclick="showSection('categories')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h7"/><circle cx="18" cy="18" r="3"/></svg>
+          <span>Categories &amp; Brands</span>
+        </button>
+
+        <button class="nav-item" data-section="discounts" onclick="showSection('discounts')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><circle cx="9.5" cy="9.5" r=".5" fill="currentColor"/><circle cx="14.5" cy="14.5" r=".5" fill="currentColor"/></svg>
+          <span>Discounts &amp; Offers</span>
+        </button>
+
         <button class="nav-item" data-section="stock" onclick="showSection('stock')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" x2="12" y1="2" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
           <span>Price & Stock</span>
@@ -354,9 +364,16 @@
             <div class="toolbar-filters">
               <select id="product-category-filter" onchange="filterProductsTable()">
                 <option value="all">All Categories</option>
+                <option value="technosport">⚡ TechnoSport (10% OFF)</option>
+                <option value="hosiery">🩲 Hosiery &amp; Innerwear</option>
+                <option value="jackets">🧥 Bomber &amp; TPU Jackets</option>
+                <option value="shirts">👔 Cotton &amp; Lycra Shirts</option>
+                <option value="casual">👕 T-Shirts &amp; Combos</option>
+                <option value="denim">👖 Denim Jeans &amp; Trousers</option>
+                <option value="ethnic">✨ Festive &amp; Ethnic Kurtas</option>
                 <option value="mens">Men's Fashion</option>
                 <option value="womens">Women's Collection</option>
-                <option value="kids">Kids & Boys</option>
+                <option value="kids">Kids &amp; Boys</option>
               </select>
 
               <select id="product-stock-filter" onchange="filterProductsTable()">
@@ -388,6 +405,122 @@
                 </thead>
                 <tbody id="products-table-body">
                   <tr><td colspan="8" class="text-center py-6">Loading products...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+
+        <!-- ======================================================== -->
+        <!-- SECTION: CATEGORIES & BRAND ARCHITECTURE                 -->
+        <!-- ======================================================== -->
+        <section id="section-categories" class="admin-section">
+          
+          <div class="section-toolbar">
+            <div>
+              <h3 style="margin: 0; font-size: 1.25rem; font-family: var(--font-serif); color: var(--color-gold);">
+                Categories &amp; Brands Architecture
+              </h3>
+              <p style="margin: 2px 0 0; font-size: 0.82rem; color: rgba(255,255,255,0.65);">
+                Configure public ecommerce collection tabs, Marathi titles, navigation slugs, and promotional tags.
+              </p>
+            </div>
+
+            <div class="toolbar-filters">
+              <button class="btn btn-gold btn-sm" onclick="openAddCategoryModal()">
+                + Add Category
+              </button>
+            </div>
+          </div>
+
+          <div class="dashboard-panel">
+            <div class="table-responsive">
+              <table class="admin-table">
+                <thead>
+                  <tr>
+                    <th>Category Name</th>
+                    <th>Marathi Name</th>
+                    <th>Slug / Code</th>
+                    <th>Icon</th>
+                    <th>Promotional Tag</th>
+                    <th>Order</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="categories-table-body">
+                  <tr><td colspan="8" class="text-center py-6">Loading categories...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+
+        <!-- ======================================================== -->
+        <!-- SECTION: PROMOTIONAL RULES & DISCOUNTS                   -->
+        <!-- ======================================================== -->
+        <section id="section-discounts" class="admin-section">
+          
+          <div class="section-toolbar">
+            <div>
+              <h3 style="margin: 0; font-size: 1.25rem; font-family: var(--font-serif); color: var(--color-gold);">
+                Promotions &amp; Dynamic Discount Engine
+              </h3>
+              <p style="margin: 2px 0 0; font-size: 0.82rem; color: rgba(255,255,255,0.65);">
+                Manage automated discounts (e.g. TechnoSport 10% OFF). Base MRP is preserved safely in the database.
+              </p>
+            </div>
+
+            <div class="toolbar-filters">
+              <button class="btn btn-gold btn-sm" onclick="openAddDiscountModal()">
+                + New Promotion Rule
+              </button>
+            </div>
+          </div>
+
+          <!-- Highlight Card for TechnoSport 10% Live Promo -->
+          <div class="dashboard-panel mb-6" style="border: 1px solid rgba(212,175,55,0.4); background: linear-gradient(135deg, rgba(56,10,19,0.9), rgba(26,3,8,0.95)); padding: 22px; border-radius: var(--radius-md); margin-bottom: 24px;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px;">
+              <div>
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                  <span class="badge-tag" style="background: rgba(212,175,55,0.2); color: var(--color-gold); font-weight: 700; border: 1px solid var(--color-gold);">⚡ ACTIVE BRAND PROMO</span>
+                  <h4 style="margin: 0; font-size: 1.2rem; color: #fff;">TechnoSport Collection — 10% Promotional Discount</h4>
+                </div>
+                <p style="margin: 0; font-size: 0.86rem; color: rgba(255,255,255,0.8); max-width: 680px; line-height: 1.5;">
+                  All items classified under <strong>TechnoSport</strong> receive an automatic 10% promotional discount computed dynamically in public storefront APIs. Original base price is safely preserved in SQLite.
+                </p>
+              </div>
+              <div style="display: flex; gap: 10px; align-items: center;">
+                <button type="button" class="btn btn-outline-gold btn-sm" onclick="editTechnoSportDiscount()">
+                  Configure Promo %
+                </button>
+                <button type="button" id="btn-toggle-techno-rule" class="btn btn-gold btn-sm" onclick="quickToggleTechnoPromo()">
+                  Toggle Active
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="dashboard-panel">
+            <div class="panel-header">
+              <h3>All Configured Discount Rules</h3>
+            </div>
+            <div class="table-responsive">
+              <table class="admin-table">
+                <thead>
+                  <tr>
+                    <th>Rule Name</th>
+                    <th>Target Scope</th>
+                    <th>Discount Rate</th>
+                    <th>Valid Period</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="discounts-table-body">
+                  <tr><td colspan="6" class="text-center py-6">Loading promotional rules...</td></tr>
                 </tbody>
               </table>
             </div>
@@ -816,6 +949,128 @@
   <!-- MODALS CONTAINER                                             -->
   <!-- ============================================================ -->
 
+  <!-- CATEGORY MODAL (Add / Edit) -->
+  <div id="category-modal" class="admin-modal">
+    <div class="modal-dialog modal-dialog-sm" style="max-width: 520px;">
+      <div class="modal-header">
+        <h3 id="category-modal-title">Add Category</h3>
+        <button class="modal-close-btn" onclick="closeCategoryModal()">&times;</button>
+      </div>
+      <form id="category-form" onsubmit="handleCategoryFormSubmit(event)">
+        <input type="hidden" id="category-id-hidden">
+        
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="cat-name">Category Name (English) *</label>
+            <input type="text" id="cat-name" class="form-control" required placeholder="e.g. TechnoSport Activewear">
+          </div>
+          <div class="form-group">
+            <label for="cat-marathi">Marathi Name</label>
+            <input type="text" id="cat-marathi" class="form-control" placeholder="उदा. टेक्नोस्पोर्ट्स ॲक्टिव्हवेअर">
+          </div>
+          <div class="form-row-2">
+            <div class="form-group">
+              <label for="cat-slug">Slug / Code *</label>
+              <input type="text" id="cat-slug" class="form-control" required placeholder="technosport">
+            </div>
+            <div class="form-group">
+              <label for="cat-icon">Icon (Emoji or Symbol)</label>
+              <input type="text" id="cat-icon" class="form-control" placeholder="⚡, 🩲, 🧥, 👔">
+            </div>
+          </div>
+          <div class="form-row-2">
+            <div class="form-group">
+              <label for="cat-tag">Promotional Tag / Badge</label>
+              <input type="text" id="cat-tag" class="form-control" placeholder="10% OFF, Bestseller">
+            </div>
+            <div class="form-group">
+              <label for="cat-order">Display Order</label>
+              <input type="number" id="cat-order" class="form-control" value="1" min="1">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="checkbox-label">
+              <input type="checkbox" id="cat-is-active" checked>
+              <span>Active in Public Catalogue &amp; Navigation</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" onclick="closeCategoryModal()">Cancel</button>
+          <button type="submit" id="btn-save-category" class="btn btn-gold">Save Category</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- DISCOUNT / PROMOTION MODAL (Add / Edit) -->
+  <div id="discount-modal" class="admin-modal">
+    <div class="modal-dialog modal-dialog-sm" style="max-width: 520px;">
+      <div class="modal-header">
+        <h3 id="discount-modal-title">Promotion Rule</h3>
+        <button class="modal-close-btn" onclick="closeDiscountModal()">&times;</button>
+      </div>
+      <form id="discount-form" onsubmit="handleDiscountFormSubmit(event)">
+        <input type="hidden" id="discount-id-hidden">
+        
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="disc-name">Rule Name *</label>
+            <input type="text" id="disc-name" class="form-control" required placeholder="e.g. TechnoSport 10% Launch Offer">
+          </div>
+          <div class="form-row-2">
+            <div class="form-group">
+              <label for="disc-target-type">Target Scope *</label>
+              <select id="disc-target-type" class="form-control" required>
+                <option value="category">Category</option>
+                <option value="product">Individual Product Code</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="disc-target-value">Target Value (Category Slug or Product Code) *</label>
+              <input type="text" id="disc-target-value" class="form-control" required placeholder="technosport">
+            </div>
+          </div>
+          <div class="form-row-2">
+            <div class="form-group">
+              <label for="disc-type">Discount Type *</label>
+              <select id="disc-type" class="form-control" required>
+                <option value="percentage">Percentage (%)</option>
+                <option value="fixed">Fixed Amount (₹)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="disc-value">Discount Value *</label>
+              <input type="number" id="disc-value" class="form-control" required min="1" step="0.5" value="10">
+            </div>
+          </div>
+          <div class="form-row-2">
+            <div class="form-group">
+              <label for="disc-start">Start Date (Optional)</label>
+              <input type="date" id="disc-start" class="form-control">
+            </div>
+            <div class="form-group">
+              <label for="disc-end">End Date (Optional)</label>
+              <input type="date" id="disc-end" class="form-control">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="checkbox-label">
+              <input type="checkbox" id="disc-is-active" checked>
+              <span>Rule is Currently Active</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" onclick="closeDiscountModal()">Cancel</button>
+          <button type="submit" id="btn-save-discount" class="btn btn-gold">Save Promotion</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- PRODUCT MODAL (Add / Edit) -->
   <div id="product-modal" class="admin-modal">
     <div class="modal-dialog">
@@ -827,7 +1082,7 @@
         <input type="hidden" id="product-id-hidden">
         
         <div class="modal-body">
-          <div class="form-row-2">
+          <div class="form-row-3">
             <div class="form-group">
               <label for="prod-name">Product Name (English) *</label>
               <input type="text" id="prod-name" class="form-control" required placeholder="e.g. Dual-Tone Bomber Jacket">
@@ -836,31 +1091,44 @@
               <label for="prod-marathi">Marathi Name</label>
               <input type="text" id="prod-marathi" class="form-control" placeholder="उदा. रिव्हर्सिबल बॉम्बर जॅकेट">
             </div>
+            <div class="form-group">
+              <label for="prod-brand">Brand *</label>
+              <input type="text" id="prod-brand" class="form-control" placeholder="TechnoSport / Hiramoti Collection" value="Hiramoti Collection" required>
+            </div>
           </div>
 
           <div class="form-row-3">
             <div class="form-group">
               <label for="prod-category">Category *</label>
               <select id="prod-category" class="form-control" required>
+                <option value="technosport">⚡ TechnoSport Activewear (10% OFF)</option>
+                <option value="hosiery">🩲 Premium Hosiery &amp; Innerwear</option>
+                <option value="jackets">🧥 Bomber &amp; TPU Jackets</option>
+                <option value="shirts">👔 Cotton &amp; Lycra Shirts</option>
+                <option value="casual">👕 T-Shirts &amp; Combos</option>
+                <option value="denim">👖 Denim Jeans &amp; Trousers</option>
+                <option value="ethnic">✨ Festive &amp; Ethnic Kurtas</option>
                 <option value="mens">Men's Fashion</option>
                 <option value="womens">Women's Collection</option>
-                <option value="kids">Kids & Boys</option>
+                <option value="kids">Kids &amp; Boys</option>
               </select>
             </div>
             <div class="form-group">
               <label for="prod-subtype">Subtype *</label>
               <select id="prod-subtype" class="form-control" required>
-                <option value="jackets">Bomber & TPU Jackets</option>
-                <option value="formal_shirts">Formal & Lycra Shirts</option>
-                <option value="party_wear">Party & Printed Shirts</option>
-                <option value="casual_denim">T-Shirts & Combos</option>
-                <option value="denim">Denim Jeans & Trousers</option>
-                <option value="ethnic">Festive & Ethnic Kurtas</option>
+                <option value="technosport">TechnoSport Performance / Gym</option>
+                <option value="hosiery">Vests, Briefs &amp; Thermal</option>
+                <option value="jackets">Bomber &amp; TPU Jackets</option>
+                <option value="formal_shirts">Formal &amp; Lycra Shirts</option>
+                <option value="party_wear">Party &amp; Printed Shirts</option>
+                <option value="casual_denim">T-Shirts &amp; Combos</option>
+                <option value="denim">Denim Jeans &amp; Trousers</option>
+                <option value="ethnic">Festive &amp; Ethnic Kurtas</option>
               </select>
             </div>
             <div class="form-group">
               <label for="prod-badge">Display Badge</label>
-              <input type="text" id="prod-badge" class="form-control" placeholder="e.g. Viral Reel, Mega Offer">
+              <input type="text" id="prod-badge" class="form-control" placeholder="e.g. 10% OFF, Viral Reel">
             </div>
           </div>
 
