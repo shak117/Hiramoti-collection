@@ -20,14 +20,15 @@
     interceptAppointmentForms();
   });
 
-  function resolvePublicImageUrl(url) {
-    if (!url) return "assets/images/real_reel_DaiL4H0zCqV.jpg";
+  function resolvePublicImageUrl(url, defaultFallback = "assets/images/real_store_shirts.jpg") {
+    if (!url) return defaultFallback;
     const clean = String(url).trim().replace(/^['"]+|['"]+$/g, "");
-    if (!clean) return "assets/images/real_reel_DaiL4H0zCqV.jpg";
-    if (clean.startsWith("http://") || clean.startsWith("https://") || clean.startsWith("data:")) {
+    if (!clean) return defaultFallback;
+    if (clean.startsWith("http://") || clean.startsWith("https://") || clean.startsWith("data:") || clean.startsWith("blob:")) {
       return clean;
     }
-    return clean.replace(/^\/+/, "");
+    const unslashed = clean.replace(/^(\.\.\/)+/, "").replace(/^\/+/, "");
+    return API_BASE ? `${API_BASE}/${unslashed}` : unslashed;
   }
 
   // ---------------------------------------------------------------------------
@@ -50,7 +51,7 @@
           originalPrice: p.original_price || (p.price * 1.5),
           discount: p.discount || "",
           badge: p.badge || (p.stock <= 0 ? "Out of Stock" : "In Stock"),
-          image: resolvePublicImageUrl(p.image),
+          image: resolvePublicImageUrl(p.image, "assets/images/real_store_shirts.jpg"),
           reelUrl: p.reel_url || "https://www.instagram.com/hiramoticollection/",
           description: p.description || "",
           sizes: p.sizes_list || ["M", "L", "XL"],
@@ -95,7 +96,7 @@
           price: r.price || "SPECIAL OFFER",
           offer: r.offer || "VIRAL DROP",
           category: r.category || "general",
-          image: resolvePublicImageUrl(r.image),
+          image: resolvePublicImageUrl(r.image, "assets/images/real_reel_DaiL4H0zCqV.jpg"),
           displayOrder: r.display_order
         }));
 

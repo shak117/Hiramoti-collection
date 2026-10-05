@@ -774,16 +774,16 @@ def api_admin_products():
     products = apply_promotional_rules(products, rules)
     return jsonify({"products": products, "count": len(products)})
 
-def sanitize_and_ingest_image_path(img_str):
+def sanitize_and_ingest_media_path(path_str, default="", is_video=False):
     """
-    Sanitizes image string, removes surrounding quotes, and auto-ingests local filesystem
-    paths into assets/uploads/ with unique filenames.
+    Sanitizes media string (image or video), removes surrounding quotes,
+    and auto-ingests local filesystem paths into assets/uploads/ with unique filenames.
     """
-    if not img_str:
-        return "assets/images/real_store_shirts.jpg"
-    clean = str(img_str).strip().strip('"').strip("'").strip()
+    if not path_str:
+        return default
+    clean = str(path_str).strip().strip('"').strip("'").strip()
     if not clean:
-        return "assets/images/real_store_shirts.jpg"
+        return default
     if clean.startswith("http://") or clean.startswith("https://") or clean.startswith("data:"):
         return clean
     if clean.startswith("/assets/"):
@@ -796,17 +796,26 @@ def sanitize_and_ingest_image_path(img_str):
     if os.path.isfile(clean_norm):
         try:
             os.makedirs(UPLOAD_DIR, exist_ok=True)
-            ext = clean_norm.rsplit(".", 1)[-1].lower() if "." in clean_norm else "jpg"
-            if ext not in ALLOWED_IMAGE_EXTENSIONS:
-                ext = "jpg"
-            unique_name = f"hm_ingest_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{str(uuid.uuid4())[:6]}.{ext}"
+            ext = clean_norm.rsplit(".", 1)[-1].lower() if "." in clean_norm else ("mp4" if is_video else "jpg")
+            allowed = ALLOWED_VIDEO_EXTENSIONS if is_video else ALLOWED_IMAGE_EXTENSIONS
+            if ext not in allowed:
+                ext = "mp4" if is_video else "jpg"
+            prefix = "hm_vid_ingest" if is_video else "hm_ingest"
+            unique_name = f"{prefix}_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{str(uuid.uuid4())[:6]}.{ext}"
             dest_path = os.path.join(UPLOAD_DIR, unique_name)
             shutil.copy2(clean_norm, dest_path)
             return f"assets/uploads/{unique_name}"
         except Exception as e:
-            print("Auto-ingest image error:", e)
+            print("Auto-ingest media error:", e)
 
-    return clean
+    return clean.lstrip("/")
+
+def sanitize_and_ingest_image_path(img_str):
+    """
+    Sanitizes product image string, removes surrounding quotes, and auto-ingests
+    local filesystem paths into assets/uploads/ with fallback to default apparel image.
+    """
+    return sanitize_and_ingest_media_path(img_str, default="assets/images/real_store_shirts.jpg", is_video=False)
 
 @app.route("/api/admin/products", methods=["POST"])
 @admin_required
@@ -1406,7 +1415,8 @@ def api_admin_create_reel():
     data = request.get_json() or {}
     title = data.get("title", "").strip()
     url = data.get("url", "").strip()
-    video_url = data.get("video_url", "").strip()
+    raw_video = data.get("video_url", "").strip()
+    video_url = sanitize_and_ingest_media_path(raw_video, default="", is_video=True) if raw_video else ""
 
     if not title:
         return jsonify({"error": "Reel title is required"}), 400
@@ -1431,7 +1441,7 @@ def api_admin_create_reel():
     price = data.get("price", "").strip() or "SPECIAL DEAL"
     offer = data.get("offer", "").strip() or "VIRAL DROP"
     category = data.get("category", "general").strip()
-    image = data.get("image", "").strip() or "assets/images/real_reel_DaiL4H0zCqV.jpg"
+    image = sanitize_and_ingest_media_path(data.get("image", ""), default="assets/images/real_reel_DaiL4H0zCqV.jpg", is_video=False)
     display_order = int(data.get("display_order", 0))
     is_active = 1 if data.get("is_active", True) else 0
 
@@ -1469,7 +1479,13 @@ def api_admin_update_reel(reel_id):
     existing_dict = dict(existing)
     title = data.get("title", existing_dict["title"]).strip()
     url = data.get("url", existing_dict.get("url", "")).strip()
-    video_url = data.get("video_url", existing_dict.get("video_url") or "").strip()
+
+    raw_video = data.get("video_url")
+    if raw_video is not None:
+        raw_video_str = str(raw_video).strip()
+        video_url = sanitize_and_ingest_media_path(raw_video_str, default="", is_video=True) if raw_video_str else ""
+    else:
+        video_url = existing_dict.get("video_url") or ""
 
     if url:
         code, embed_url = parse_instagram_url(url)
@@ -1485,7 +1501,13 @@ def api_admin_update_reel(reel_id):
     price = data.get("price", existing_dict.get("price", "")).strip()
     offer = data.get("offer", existing_dict.get("offer", "")).strip()
     category = data.get("category", existing_dict.get("category", "")).strip()
-    image = data.get("image", existing_dict.get("image", "")).strip()
+
+    raw_image = data.get("image")
+    if raw_image is not None and str(raw_image).strip():
+        image = sanitize_and_ingest_media_path(str(raw_image).strip(), default=existing_dict.get("image", ""), is_video=False)
+    else:
+        image = existing_dict.get("image", "")
+
     display_order = int(data.get("display_order", existing_dict.get("display_order", 1)))
     is_active = 1 if data.get("is_active", existing_dict.get("is_active", 1)) else 0
 

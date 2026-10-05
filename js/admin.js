@@ -174,6 +174,19 @@ function showDashboardUI() {
   loadReels();
   loadImages();
   loadEnquiries();
+
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const action = params.get("action");
+    if (action === "add-reel") {
+      setTimeout(() => { openAddReelModal(); }, 350);
+    } else if (action === "edit-reel") {
+      const rId = params.get("id");
+      if (rId) setTimeout(() => { openEditReelModal(rId); }, 450);
+    } else if (action === "add-product") {
+      setTimeout(() => { openAddProductModal(); }, 350);
+    }
+  } catch(e) {}
 }
 
 async function handleAdminLogin(e) {
@@ -257,20 +270,15 @@ function closeSidebar() {
   if (overlay) overlay.classList.remove("open");
 }
 
-function resolveImageUrl(url) {
-  if (!url) return "/assets/images/real_reel_DaiL4H0zCqV.jpg";
-  const trimmed = String(url).trim();
-  if (!trimmed) return "/assets/images/real_reel_DaiL4H0zCqV.jpg";
-  if (trimmed.startsWith("http://") || trimmed.startsWith("https://") || trimmed.startsWith("data:") || trimmed.startsWith("blob:")) {
-    return trimmed;
+function resolveImageUrl(url, defaultFallback = "assets/images/real_store_shirts.jpg") {
+  if (!url) return defaultFallback;
+  let clean = String(url).trim().replace(/^['"]+|['"]+$/g, "");
+  if (!clean) return defaultFallback;
+  if (clean.startsWith("http://") || clean.startsWith("https://") || clean.startsWith("data:") || clean.startsWith("blob:")) {
+    return clean;
   }
-  if (trimmed.startsWith("/")) {
-    return trimmed;
-  }
-  if (trimmed.startsWith("../")) {
-    return "/" + trimmed.replace(/^\.\.\//, "");
-  }
-  return "/" + trimmed;
+  clean = clean.replace(/^(\.\.\/)+/, "").replace(/^\/+/, "");
+  return API_BASE ? `${API_BASE}/${clean}` : `/${clean}`;
 }
 
 // ==========================================================================
@@ -353,7 +361,7 @@ async function loadDashboardData() {
         <tr>
           <td>
             <div class="item-cell">
-              <img src="../${p.image}" alt="${p.name}" class="item-thumb" onerror="this.src='../assets/images/real_store_shirts.jpg'">
+              <img src="${resolveImageUrl(p.image)}" alt="${p.name}" class="item-thumb" onerror="this.onerror=null; this.src='/assets/images/real_store_shirts.jpg';">
               <div class="item-titles">
                 <h4>${p.name}</h4>
                 <span>Code: ${p.id}</span>
@@ -439,7 +447,7 @@ function renderProductsTable(products) {
     <tr>
       <td>
         <div class="item-cell">
-          <img src="../${p.image}" alt="${p.name}" class="item-thumb" onerror="this.src='../assets/images/real_store_shirts.jpg'">
+          <img src="${resolveImageUrl(p.image)}" alt="${p.name}" class="item-thumb" onerror="this.onerror=null; this.src='/assets/images/real_store_shirts.jpg';">
           <div class="item-titles">
             <h4>${p.name}</h4>
             <div style="display:flex;align-items:center;gap:6px;margin-top:2px;">
@@ -668,7 +676,7 @@ function renderStockTable(products) {
     <tr id="stock-row-${p.id}">
       <td>
         <div class="item-cell">
-          <img src="../${p.image}" alt="${p.name}" class="item-thumb" onerror="this.src='../assets/images/real_store_shirts.jpg'">
+          <img src="${resolveImageUrl(p.image)}" alt="${p.name}" class="item-thumb" onerror="this.onerror=null; this.src='/assets/images/real_store_shirts.jpg';">
           <div class="item-titles">
             <h4>${p.name}</h4>
             <span>${p.id}</span>
@@ -1264,7 +1272,7 @@ function renderImagesGallery(images) {
   grid.innerHTML = images.map(img => `
     <div class="image-card">
       <div class="image-card-thumb">
-        <img src="../${img.url}" alt="${img.filename}" loading="lazy" onerror="this.src='../assets/images/real_store_shirts.jpg'">
+        <img src="${resolveImageUrl(img.url)}" alt="${img.filename}" loading="lazy" onerror="this.onerror=null; this.src='/assets/images/real_store_shirts.jpg';">
       </div>
       <div class="image-card-info">
         <div class="image-card-name" title="${img.filename}">${img.filename}</div>
@@ -1379,12 +1387,7 @@ function updateProductImagePreview(url) {
     return;
   }
 
-  let fullUrl = clean;
-  if (!clean.startsWith("http://") && !clean.startsWith("https://") && !clean.startsWith("data:")) {
-    fullUrl = "../" + clean.replace(/^\/+/, "");
-  }
-
-  thumb.src = fullUrl;
+  thumb.src = resolveImageUrl(clean, "/assets/images/real_store_shirts.jpg");
   if (label) label.textContent = clean;
   box.style.display = "flex";
 }
@@ -1512,10 +1515,10 @@ function handleReelCoverFileSelect(e) {
     method: "POST",
     body: formData
   })
-    .then(res => res.json())
-    .then(data => {
+    .then(res => res.json().then(data => ({ status: res.status, ok: res.ok, data })))
+    .then(({ status, ok, data }) => {
       isUploadingReelCover = false;
-      if (data.success && data.url) {
+      if (ok && data.success && data.url) {
         document.getElementById("reel-image-hidden").value = data.url;
         if (filenameLabel) filenameLabel.textContent = `Selected: ${file.name}`;
         if (pathDisplay) pathDisplay.textContent = data.url;
@@ -1526,18 +1529,31 @@ function handleReelCoverFileSelect(e) {
         if (thumb) thumb.src = resolveImageUrl(data.url);
         showToast("Reel cover image uploaded successfully!", "success");
       } else {
-        showToast(data.error || "Image upload failed", "danger");
+        const errMsg = data.error || (status === 401 ? "Session expired. Please log in again." : "Image upload failed");
+        showToast(errMsg, "danger");
         if (filenameLabel) filenameLabel.textContent = "Upload failed — try again";
+        if (badge) {
+          badge.textContent = "Upload Failed";
+          badge.className = "badge-cover-source";
+        }
+        const existingImg = document.getElementById("reel-image-hidden").value;
+        if (thumb && existingImg) {
+          thumb.src = resolveImageUrl(existingImg);
+        }
       }
     })
     .catch(err => {
       isUploadingReelCover = false;
       showToast("Network error uploading cover image", "danger");
-      if (filenameLabel) filenameLabel.textContent = "Upload failed";
+      if (filenameLabel) filenameLabel.textContent = "Upload failed (Network Error)";
+      if (badge) {
+        badge.textContent = "Upload Failed";
+        badge.className = "badge-cover-source";
+      }
     });
 }
 
-function clearReelCoverImage() {
+function clearReelCoverImage(silent = false) {
   const fileInput = document.getElementById("reel-cover-file");
   if (fileInput) fileInput.value = "";
 
@@ -1559,7 +1575,9 @@ function clearReelCoverImage() {
   const thumb = document.getElementById("reel-preview-thumb");
   if (thumb) thumb.src = resolveImageUrl(defaultImg);
 
-  showToast("Reel cover reset to default store artwork", "info");
+  if (!silent) {
+    showToast("Reel cover reset to default store artwork", "info");
+  }
 }
 
 function handleReelVideoFileSelect(e) {
@@ -1596,8 +1614,15 @@ function handleReelVideoFileSelect(e) {
   formData.append("file", file);
   formData.append("media_type", "video");
 
+  const token = localStorage.getItem("hm_admin_token");
+  const targetUrl = (API_BASE ? API_BASE : "") + "/api/admin/upload-media";
+
   const xhr = new XMLHttpRequest();
-  xhr.open("POST", "/api/admin/upload-media", true);
+  xhr.open("POST", targetUrl, true);
+  xhr.withCredentials = true;
+  if (token) {
+    xhr.setRequestHeader("Authorization", "Bearer " + token);
+  }
 
   xhr.upload.onprogress = (evt) => {
     if (evt.lengthComputable && progressBar && progressLabel) {
@@ -1624,6 +1649,7 @@ function handleReelVideoFileSelect(e) {
 
           if (videoElement) {
             videoElement.src = resolveImageUrl(data.url);
+            videoElement.load();
           }
           if (nameDisplay) {
             nameDisplay.textContent = `${file.name} (${(file.size / (1024 * 1024)).toFixed(1)} MB)`;
@@ -1640,23 +1666,36 @@ function handleReelVideoFileSelect(e) {
 
           showToast("Reel video uploaded successfully!", "success");
         } else {
-          showToast(data.error || "Video upload failed", "danger");
-          if (statusText) statusText.textContent = "Upload failed";
+          const errDetail = data.error || "Video upload failed";
+          showToast(errDetail, "danger");
+          if (statusText) statusText.textContent = `Upload failed: ${errDetail}`;
         }
       } catch (err) {
         showToast("Invalid response parsing upload result", "danger");
+        if (statusText) statusText.textContent = "Upload failed: Parse error";
       }
+    } else if (xhr.status === 401) {
+      showToast("Session expired. Please log in again to upload videos.", "danger");
+      if (statusText) statusText.textContent = "Upload failed: Unauthorized (401)";
+    } else if (xhr.status === 413) {
+      showToast("Video exceeds server maximum limit of 50 MB.", "danger");
+      if (statusText) statusText.textContent = "Upload failed: File too large (413)";
     } else {
-      showToast("Server rejected video upload. Status: " + xhr.status, "danger");
-      if (statusText) statusText.textContent = "Upload failed";
+      let errDetail = `Status ${xhr.status}`;
+      try {
+        const d = JSON.parse(xhr.responseText);
+        if (d.error) errDetail = d.error;
+      } catch(e) {}
+      showToast("Server rejected video upload: " + errDetail, "danger");
+      if (statusText) statusText.textContent = `Upload failed: ${errDetail}`;
     }
   };
 
   xhr.onerror = () => {
     isUploadingReelVideo = false;
     if (progressWrap) progressWrap.style.display = "none";
-    showToast("Network error during video upload", "danger");
-    if (statusText) statusText.textContent = "Upload failed";
+    showToast("Network error during video upload. Please check server connection.", "danger");
+    if (statusText) statusText.textContent = "Upload failed: Network error";
   };
 
   xhr.send(formData);
@@ -1691,7 +1730,7 @@ function openAddReelModal() {
   document.getElementById("reel-is-active").checked = true;
   document.getElementById("reel-order").value = (cachedReels.length + 1);
 
-  clearReelCoverImage();
+  clearReelCoverImage(true);
   clearReelVideo();
 
   document.getElementById("reel-modal").classList.add("show");
@@ -1713,7 +1752,7 @@ function openEditReelModal(reelId) {
   document.getElementById("reel-is-active").checked = !!r.is_active;
 
   // Set Cover Image state
-  const currentImg = r.image || "assets/images/real_reel_DaiL4H0zCqV.jpg";
+  const currentImg = (r.image || "").trim() || "assets/images/real_reel_DaiL4H0zCqV.jpg";
   document.getElementById("reel-image-hidden").value = currentImg;
   const filename = currentImg.split("/").pop();
   const isUploaded = currentImg.includes("uploads/");
@@ -1734,7 +1773,7 @@ function openEditReelModal(reelId) {
   if (thumb) thumb.src = resolveImageUrl(currentImg);
 
   // Set Video state
-  const vidUrl = r.video_url || (r.embed_url && (r.embed_url.endsWith(".mp4") || r.embed_url.endsWith(".webm") || r.embed_url.endsWith(".mov")) ? r.embed_url : "");
+  const vidUrl = (r.video_url || "").trim() || (r.embed_url && (r.embed_url.endsWith(".mp4") || r.embed_url.endsWith(".webm") || r.embed_url.endsWith(".mov")) ? r.embed_url : "");
   if (vidUrl) {
     document.getElementById("reel-video-url-hidden").value = vidUrl;
     const vName = vidUrl.split("/").pop();
@@ -1745,7 +1784,10 @@ function openEditReelModal(reelId) {
     if (nameDisplay) nameDisplay.textContent = vName;
 
     const vidEl = document.getElementById("reel-video-element");
-    if (vidEl) vidEl.src = resolveImageUrl(vidUrl);
+    if (vidEl) {
+      vidEl.src = resolveImageUrl(vidUrl);
+      vidEl.load();
+    }
 
     const previewCard = document.getElementById("reel-video-preview-card");
     if (previewCard) previewCard.style.display = "block";

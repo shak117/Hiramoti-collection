@@ -243,7 +243,7 @@
       <button type="button" class="product-modal-close" onclick="closeProductDetail()" aria-label="Close Product Details">&times;</button>
       
       <div class="product-modal-img-col">
-        <img id="modal-product-img" src="" alt="Product Image" onerror="this.onerror=null; this.src='assets/images/hiramoti_header_logo.png';">
+        <img id="modal-product-img" src="" alt="Product Image" onerror="this.onerror=null; this.src='assets/images/real_store_shirts.jpg';">
       </div>
 
       <div class="product-modal-content-col">
@@ -804,8 +804,9 @@
       if (!url) return "assets/images/real_store_shirts.jpg";
       var clean = String(url).trim().replace(/^['"]+|['"]+$/g, "");
       if (!clean) return "assets/images/real_store_shirts.jpg";
-      if (clean.startsWith("http://") || clean.startsWith("https://") || clean.startsWith("data:")) return clean;
-      return clean.replace(/^\/+/, "");
+      if (clean.startsWith("http://") || clean.startsWith("https://") || clean.startsWith("data:") || clean.startsWith("blob:")) return clean;
+      clean = clean.replace(/^(\.\.\/)+/, "").replace(/^\/+/, "");
+      return API_BASE ? API_BASE + "/" + clean : clean;
     }
 
     var currentCategory = "all";
@@ -927,7 +928,7 @@
         return '<div class="ecommerce-product-card">' +
           '<!-- FULL PRODUCT IMAGE CONTAINER (Contain, No Crop, Clean Canvas) -->' +
           '<div class="product-image-wrapper" onclick="openProductDetail(\'' + p.id + '\')" title="Click to view details for ' + safeName + '">' +
-            '<img src="' + cleanImg + '" alt="' + safeName + '" loading="lazy" onerror="this.onerror=null; this.src=\'assets/images/hiramoti_header_logo.png\'; this.style.padding=\'28px\';">' +
+            '<img src="' + cleanImg + '" alt="' + safeName + '" loading="lazy" onerror="this.onerror=null; this.src=\'assets/images/real_store_shirts.jpg\';">' +
           '</div>' +
 
           '<!-- BELOW-IMAGE KPI & INFORMATION LAYOUT -->' +
