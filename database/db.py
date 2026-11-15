@@ -118,7 +118,7 @@ def init_db():
         )
     """)
 
-    # 6. Customer Enquiries / Appointments table
+    # 6. Showroom Appointments / Visits table (Existing booking system)
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS enquiries (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -134,7 +134,51 @@ def init_db():
         )
     """)
 
-    # 7. Website Settings table
+    # 7. Customer Leads & Product Enquiries table
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS leads (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            phone TEXT NOT NULL,
+            email TEXT,
+            product_id TEXT,
+            product_name TEXT,
+            category TEXT,
+            price TEXT,
+            product_url TEXT,
+            message TEXT,
+            preferred_contact TEXT DEFAULT 'WhatsApp',
+            source TEXT DEFAULT 'Website Enquiry',
+            page_url TEXT,
+            status TEXT DEFAULT 'NEW',
+            notes TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+
+    # Non-destructive migrations for existing leads table
+    for col_def in [
+        ("email", "TEXT"),
+        ("product_id", "TEXT"),
+        ("product_name", "TEXT"),
+        ("category", "TEXT"),
+        ("price", "TEXT"),
+        ("product_url", "TEXT"),
+        ("message", "TEXT"),
+        ("preferred_contact", "TEXT DEFAULT 'WhatsApp'"),
+        ("source", "TEXT DEFAULT 'Website Enquiry'"),
+        ("page_url", "TEXT"),
+        ("status", "TEXT DEFAULT 'NEW'"),
+        ("notes", "TEXT"),
+        ("updated_at", "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
+    ]:
+        try:
+            cursor.execute(f"ALTER TABLE leads ADD COLUMN {col_def[0]} {col_def[1]}")
+        except sqlite3.OperationalError:
+            pass
+
+    # 8. Website Settings table
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS settings (
             key TEXT PRIMARY KEY,

@@ -545,15 +545,22 @@ def api_admin_dashboard_stats():
     out_of_stock = conn.execute("SELECT COUNT(*) FROM products WHERE stock = 0 OR status = 'out_of_stock'").fetchone()[0]
     total_reels = conn.execute("SELECT COUNT(*) FROM reels WHERE is_active = 1").fetchone()[0]
     total_enquiries = conn.execute("SELECT COUNT(*) FROM enquiries").fetchone()[0]
+    total_leads = conn.execute("SELECT COUNT(*) FROM leads").fetchone()[0]
+    new_leads = conn.execute("SELECT COUNT(*) FROM leads WHERE status = 'NEW'").fetchone()[0]
 
     # Recent 5 products
     recent_products = [dict(row) for row in conn.execute(
         "SELECT id, name, price, stock, status, image FROM products ORDER BY created_at DESC LIMIT 5"
     ).fetchall()]
 
-    # Recent 5 enquiries
+    # Recent 5 showroom visit enquiries
     recent_enquiries = [dict(row) for row in conn.execute(
         "SELECT id, name, phone, area, visit_date, time_slot, status, created_at FROM enquiries ORDER BY created_at DESC LIMIT 5"
+    ).fetchall()]
+
+    # Recent 5 customer leads
+    recent_leads = [dict(row) for row in conn.execute(
+        "SELECT id, name, phone, email, product_name, category, source, status, created_at FROM leads ORDER BY created_at DESC LIMIT 5"
     ).fetchall()]
 
     conn.close()
@@ -565,8 +572,11 @@ def api_admin_dashboard_stats():
         "out_of_stock": out_of_stock,
         "total_reels": total_reels,
         "total_enquiries": total_enquiries,
+        "total_leads": total_leads,
+        "new_leads": new_leads,
         "recent_products": recent_products,
-        "recent_enquiries": recent_enquiries
+        "recent_enquiries": recent_enquiries,
+        "recent_leads": recent_leads
     })
 
 
@@ -1605,6 +1615,205 @@ def api_admin_delete_enquiry(enquiry_id):
     conn.commit()
     conn.close()
     return jsonify({"success": True, "message": f"Appointment lead #{enquiry_id} deleted successfully"})
+
+
+# ---------------------------------------------------------------------------
+# Customer Leads & Product Enquiries API (Public & Admin Protected)
+# ---------------------------------------------------------------------------
+def sanitize_indian_phone(phone_raw):
+    """Normalizes phone number to 10-digit Indian mobile format or None if invalid."""
+    if not phone_raw:
+        return None
+    cleaned = re.sub(r"[^\d]", "", str(phone_raw).strip())
+    if cleaned.startswith("0091"):
+        cleaned = cleaned[4:]
+    elif len(cleaned) == 12 and cleaned.startswith("91"):
+        cleaned = cleaned[2:]
+    elif len(cleaned) == 11 and cleaned.startswith("0"):
+        cleaned = cleaned[1:]
+    elif len(cleaned) > 10:
+        last10 = cleaned[-10:]
+        if last10[0] in "6789":
+            cleaned = last10
+    if len(cleaned) == 10 and cleaned[0] in "6789":
+        return cleaned
+    return None
+
+def is_valid_email_address(email_str):
+    """Validates email format if provided."""
+    if not email_str:
+        return True
+    pattern = r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$"
+    return bool(re.match(pattern, email_str.strip()))
+
+@app.route("/api/leads", methods=["POST"])
+@app.route("/api/enquiry", methods=["POST"])
+def api_create_lead():
+    """Public API endpoint to capture customer leads and product enquiries."""
+    data = request.get_json() or {}
+    name = (data.get("name") or "").strip()
+    phone_raw = (data.get("phone") or "").strip()
+    email = (data.get("email") or "").strip()
+    product_id = (data.get("product_id") or "").strip()
+    product_name = (data.get("product_name") or "").strip()
+    category = (data.get("category") or "").strip()
+    price = (data.get("price") or "").strip()
+    product_url = (data.get("product_url") or "").strip()
+    message = (data.get("message") or "").strip()
+    preferred_contact = (data.get("preferred_contact") or "WhatsApp").strip()
+    source = (data.get("source") or "Website Enquiry").strip()
+    page_url = (data.get("page_url") or "").strip()
+
+    # Backend Validation
+    if not name or len(name) < 2:
+        return jsonify({"error": "Full name is required (at least 2 characters)"}), 400
+
+    phone = sanitize_indian_phone(phone_raw)
+    if not phone:
+        return jsonify({"error": "Please enter a valid 10-digit mobile number"}), 400
+
+    if email and not is_valid_email_address(email):
+        return jsonify({"error": "Please enter a valid email address"}), 400
+
+    if len(message) > 2000:
+        return jsonify({"error": "Message is too long (maximum 2000 characters)"}), 400
+
+    # Auto-resolve product context if product_id is supplied
+    if product_id and not product_name:
+        conn_p = get_db_connection()
+        prod_row = conn_p.execute("SELECT name, category, price FROM products WHERE id = ?", (product_id,)).fetchone()
+        conn_p.close()
+        if prod_row:
+            product_name = prod_row["name"]
+            if not category:
+                category = prod_row["category"]
+            if not price:
+                price = f"₹{prod_row['price']}"
+
+    if not product_name and not category:
+        product_name = "General Enquiry"
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        INSERT INTO leads (
+            name, phone, email, product_id, product_name, category, price,
+            product_url, message, preferred_contact, source, page_url, status, notes
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'NEW', '')
+    """, (
+        name, phone, email, product_id, product_name, category, price,
+        product_url, message, preferred_contact, source, page_url
+    ))
+    lead_id = cursor.lastrowid
+    conn.commit()
+    conn.close()
+
+    return jsonify({
+        "success": True,
+        "lead_id": lead_id,
+        "message": "Enquiry submitted successfully!",
+        "customer": {
+            "id": lead_id,
+            "name": name,
+            "phone": phone,
+            "interest": product_name or category or "General Enquiry"
+        }
+    }), 201
+
+@app.route("/api/admin/leads", methods=["GET"])
+@admin_required
+def api_admin_leads():
+    """Returns all leads for Admin with optional status and text search filtering."""
+    conn = get_db_connection()
+    status_filter = request.args.get("status")
+    query = request.args.get("q", "").strip()
+
+    sql = "SELECT * FROM leads WHERE 1=1"
+    params = []
+    if status_filter and status_filter.upper() != "ALL":
+        sql += " AND status = ?"
+        params.append(status_filter.upper())
+    if query:
+        sql += " AND (name LIKE ? OR phone LIKE ? OR email LIKE ? OR product_name LIKE ? OR message LIKE ? OR source LIKE ?)"
+        like_q = f"%{query}%"
+        params.extend([like_q, like_q, like_q, like_q, like_q, like_q])
+
+    sql += " ORDER BY created_at DESC"
+    rows = conn.execute(sql, params).fetchall()
+
+    total_count = conn.execute("SELECT COUNT(*) FROM leads").fetchone()[0]
+    new_count = conn.execute("SELECT COUNT(*) FROM leads WHERE status = 'NEW'").fetchone()[0]
+    conn.close()
+
+    return jsonify({
+        "success": True,
+        "leads": [dict(r) for r in rows],
+        "count": len(rows),
+        "total_count": total_count,
+        "new_count": new_count
+    })
+
+@app.route("/api/admin/leads/<int:lead_id>", methods=["GET"])
+@admin_required
+def api_admin_get_lead(lead_id):
+    """Retrieves single lead details."""
+    conn = get_db_connection()
+    row = conn.execute("SELECT * FROM leads WHERE id = ?", (lead_id,)).fetchone()
+    conn.close()
+    if not row:
+        return jsonify({"error": "Lead not found"}), 404
+    return jsonify({"success": True, "lead": dict(row)})
+
+@app.route("/api/admin/leads/<int:lead_id>", methods=["PUT"])
+@admin_required
+def api_admin_update_lead(lead_id):
+    """Updates lead status and/or admin follow-up notes."""
+    data = request.get_json() or {}
+    conn = get_db_connection()
+    existing = conn.execute("SELECT * FROM leads WHERE id = ?", (lead_id,)).fetchone()
+    if not existing:
+        conn.close()
+        return jsonify({"error": "Lead not found"}), 404
+
+    status = (data.get("status") or existing["status"]).strip().upper()
+    valid_statuses = {"NEW", "CONTACTED", "FOLLOW-UP", "CONVERTED", "CLOSED"}
+    if status not in valid_statuses:
+        status = existing["status"]
+
+    notes = data.get("notes")
+    if notes is None:
+        notes = existing["notes"] or ""
+    else:
+        notes = str(notes).strip()
+
+    conn.execute("""
+        UPDATE leads
+        SET status = ?, notes = ?, updated_at = CURRENT_TIMESTAMP
+        WHERE id = ?
+    """, (status, notes, lead_id))
+    conn.commit()
+
+    updated = conn.execute("SELECT * FROM leads WHERE id = ?", (lead_id,)).fetchone()
+    conn.close()
+    return jsonify({
+        "success": True,
+        "message": f"Lead #{lead_id} updated successfully",
+        "lead": dict(updated)
+    })
+
+@app.route("/api/admin/leads/<int:lead_id>", methods=["DELETE"])
+@admin_required
+def api_admin_delete_lead(lead_id):
+    """Deletes lead by ID."""
+    conn = get_db_connection()
+    existing = conn.execute("SELECT * FROM leads WHERE id = ?", (lead_id,)).fetchone()
+    if not existing:
+        conn.close()
+        return jsonify({"error": "Lead not found"}), 404
+    conn.execute("DELETE FROM leads WHERE id = ?", (lead_id,))
+    conn.commit()
+    conn.close()
+    return jsonify({"success": True, "message": f"Lead #{lead_id} deleted successfully"})
  
 # ---------------------------------------------------------------------------
 # Founder & Legacy API (Public & Admin Protected)

@@ -103,7 +103,7 @@
           <span class="wa-text-full">WhatsApp Chat</span>
           <span class="wa-text-short">WhatsApp</span>
         </a>
-        <button type="button" class="btn btn-primary header-cta" onclick="openBookVisitModal()">Book Showroom Visit</button>
+        <button type="button" class="btn btn-primary header-cta" onclick="openEnquiryModal()">Enquiry</button>
         <button class="mobile-toggle" aria-label="Open Navigation Menu">
           <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <line x1="3" y1="12" x2="21" y2="12"/>
@@ -147,7 +147,7 @@
       <a href="about.html" class="nav-link ">About Showroom</a>
       <a href="contact.html" class="nav-link ">Store Location & Contact</a>
       
-      <button type="button" class="btn btn-primary" style="margin-top: 15px; width: 100%;" onclick="openBookVisitModal()">Book Showroom Visit</button>
+      <button type="button" class="btn btn-primary" style="margin-top: 15px; width: 100%;" onclick="openEnquiryModal()">Enquiry</button>
     </nav>
     <div class="drawer-footer">
       <p style="font-size: 0.85rem; color: var(--color-muted); margin-bottom: 12px;">Rajat Sagar Complex, Opp. Rajdhani Satara Selfie Point, Powai Naka Satara</p>
@@ -397,8 +397,8 @@
         </div>
 
         <div style="margin-top: 14px;">
-          <button type="button" class="btn btn-gold footer-book-btn" onclick="openBookVisitModal()">
-            Book Showroom Visit
+          <button type="button" class="btn btn-gold footer-book-btn" onclick="openEnquiryModal()">
+            Enquiry
           </button>
         </div>
       </div>
@@ -486,21 +486,21 @@
         <p>Schedule your personalized trial & shopping session. We will keep your sizes and preferred styles ready!</p>
       </div>
       <div class="appointment-body">
-        <form id="appointment-form" onsubmit="submitAppointmentForm(event)">
+        <form id="appointment-form" name="appointment" method="POST" action="/api/enquiry" onsubmit="submitAppointmentForm(event)" autocomplete="on">
           <div class="apt-row">
             <div class="apt-form-group">
-              <label class="apt-form-label">Full Name <span class="req">*</span></label>
-              <input type="text" id="apt-name" class="apt-form-input" placeholder="e.g. Rahul Patil" required>
+              <label class="apt-form-label" for="apt-name">Full Name <span class="req">*</span></label>
+              <input type="text" id="apt-name" name="name" class="apt-form-input" placeholder="e.g. Rahul Patil" required autocomplete="name">
             </div>
             <div class="apt-form-group">
-              <label class="apt-form-label">WhatsApp / Mobile Number <span class="req">*</span></label>
-              <input type="tel" id="apt-phone" class="apt-form-input" placeholder="e.g. 98220 12345" required>
+              <label class="apt-form-label" for="apt-phone">WhatsApp / Mobile Number <span class="req">*</span></label>
+              <input type="tel" id="apt-phone" name="phone" class="apt-form-input" placeholder="e.g. 98220 12345" required autocomplete="tel" inputmode="tel">
             </div>
           </div>
 
           <div class="apt-form-group">
-            <label class="apt-form-label">Your Area / Address (Satara / Nearby) <span class="req">*</span></label>
-            <input type="text" id="apt-address" class="apt-form-input" placeholder="e.g. Powai Naka, Sadar Bazar, Karad, Wai..." required>
+            <label class="apt-form-label" for="apt-address">Your Area / Address (Satara / Nearby) <span class="req">*</span></label>
+            <input type="text" id="apt-address" name="address" class="apt-form-input" placeholder="e.g. Powai Naka, Sadar Bazar, Karad, Wai..." required autocomplete="street-address">
           </div>
 
           <div class="apt-row">
@@ -817,6 +817,7 @@
 
   <script src="js/data.js"></script>
   <script src="js/api-bridge.js"></script>
+  <script src="js/enquiry-modal.js"></script>
   <script>
     document.addEventListener("DOMContentLoaded", function() {
       renderReelCards("all");

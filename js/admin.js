@@ -47,6 +47,10 @@ let cachedDiscounts = [];
 let cachedReels = [];
 let cachedImages = [];
 let cachedEnquiries = [];
+let cachedLeads = [];
+let activeLead = null;
+let currentLeadStatusFilter = "ALL";
+let leadSearchTimer = null;
 let activeSection = "overview";
 let pendingConfirmCallback = null;
 
@@ -174,6 +178,7 @@ function showDashboardUI() {
   loadReels();
   loadImages();
   loadEnquiries();
+  loadLeads();
 
   try {
     const params = new URLSearchParams(window.location.search);
@@ -315,6 +320,7 @@ function showSection(sectionId) {
     stock: "Quick Price & Stock Management",
     images: "Image Manager & Media Library",
     reels: "Instagram Reels & Video Feed",
+    leads: "Customer Leads & Product Enquiries",
     enquiries: "Showroom Visit Appointments",
     founder: "Founder & Legacy Content Manager",
     settings: "System & Security Settings"
@@ -329,6 +335,7 @@ function showSection(sectionId) {
   if (sectionId === "stock") renderStockTable(cachedProducts);
   if (sectionId === "images") loadImages();
   if (sectionId === "reels") renderReelsCards(cachedReels);
+  if (sectionId === "leads") loadLeads();
   if (sectionId === "enquiries") loadEnquiries();
   if (sectionId === "founder") loadFounderAdminData();
 }
@@ -349,10 +356,20 @@ async function loadDashboardData() {
     document.getElementById("stat-total-reels").textContent = data.total_reels || 0;
     document.getElementById("stat-total-enquiries").textContent = data.total_enquiries || 0;
 
+    const statLeads = document.getElementById("stat-total-leads");
+    if (statLeads) statLeads.textContent = data.total_leads || 0;
+    const statNewLeads = document.getElementById("stat-new-leads");
+    if (statNewLeads) statNewLeads.textContent = data.new_leads || 0;
+
     // Badges in sidebar
     document.getElementById("badge-products-count").textContent = data.total_products || 0;
     document.getElementById("badge-reels-count").textContent = data.total_reels || 0;
     document.getElementById("badge-enquiries-count").textContent = data.total_enquiries || 0;
+
+    const badgeLeads = document.getElementById("badge-leads-count");
+    if (badgeLeads) badgeLeads.textContent = data.new_leads || data.total_leads || 0;
+    const badgeHeaderLeads = document.getElementById("badge-leads-header-count");
+    if (badgeHeaderLeads) badgeHeaderLeads.textContent = `${data.total_leads || 0} Total`;
 
     // Render Recent Products in Overview
     const recentProdBody = document.getElementById("overview-recent-products");
@@ -382,6 +399,33 @@ async function loadDashboardData() {
       `).join("");
     } else {
       recentProdBody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-muted">No products yet.</td></tr>`;
+    }
+
+    // Render Recent Leads in Overview
+    const recentLeadsBody = document.getElementById("overview-recent-leads");
+    if (recentLeadsBody) {
+      if (data.recent_leads && data.recent_leads.length > 0) {
+        recentLeadsBody.innerHTML = data.recent_leads.map(l => {
+          const statusClass = l.status === "NEW" ? "badge-gold" : (l.status === "CONTACTED" ? "badge-info" : (l.status === "CONVERTED" ? "badge-success" : "badge-outline"));
+          const cleanPhone = String(l.phone || '').replace(/[^0-9]/g, '');
+          return `
+            <tr>
+              <td><strong>${escapeHtml(l.name)}</strong></td>
+              <td><a href="tel:${cleanPhone}" style="color: var(--color-gold); font-weight: 600;">${l.phone}</a></td>
+              <td><span class="badge-tag">${escapeHtml(l.product_name || l.category || 'General')}</span></td>
+              <td><span class="badge ${statusClass}" style="font-size: 0.72rem;">${l.status || 'NEW'}</span></td>
+              <td>
+                <div style="display: flex; gap: 6px;">
+                  <button type="button" class="btn btn-xs btn-outline-gold" onclick="viewLeadDetails(${l.id})">View</button>
+                  <a href="https://wa.me/91${cleanPhone}?text=${encodeURIComponent("Hello " + l.name + "! Thank you for your enquiry regarding " + (l.product_name || 'Hiramoti Collection') + " at our Satara showroom.")}" target="_blank" rel="noopener" class="btn btn-xs btn-whatsapp">WA</a>
+                </div>
+              </td>
+            </tr>
+          `;
+        }).join("");
+      } else {
+        recentLeadsBody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-muted">No website enquiries yet.</td></tr>`;
+      }
     }
 
     // Render Recent Enquiries in Overview
@@ -2038,6 +2082,359 @@ function confirmDeleteEnquiry(id, customerName) {
     },
     "Delete"
   );
+}
+
+// ==========================================================================
+// 8B. CUSTOMER LEADS & PRODUCT ENQUIRIES MANAGEMENT
+// ==========================================================================
+function escapeHtml(str) {
+  if (!str) return "";
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+async function loadLeads() {
+  try {
+    const searchInput = document.getElementById("leads-search-input");
+    const query = searchInput ? searchInput.value.trim() : "";
+    let url = `/api/admin/leads?status=${currentLeadStatusFilter}`;
+    if (query) url += `&q=${encodeURIComponent(query)}`;
+
+    const res = await fetch(url);
+    if (res.ok) {
+      const data = await res.json();
+      cachedLeads = data.leads || [];
+      renderLeadsTable(cachedLeads);
+
+      const countEl = document.getElementById("leads-count-label");
+      if (countEl) countEl.textContent = `${data.count} lead${data.count === 1 ? '' : 's'} found (${data.new_count || 0} new)`;
+
+      const headerCountBadge = document.getElementById("badge-leads-header-count");
+      if (headerCountBadge) headerCountBadge.textContent = `${data.total_count || data.count} Total`;
+
+      const badgeSidebar = document.getElementById("badge-leads-count");
+      if (badgeSidebar) badgeSidebar.textContent = data.new_count || data.total_count || 0;
+    }
+  } catch (err) {
+    console.error("Error loading leads:", err);
+  }
+}
+
+function renderLeadsTable(leads) {
+  const tbody = document.getElementById("leads-table-body");
+  if (!tbody) return;
+
+  if (leads.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="9" class="text-center py-8 text-muted">No customer enquiries found matching the selected filter.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = leads.map(l => {
+    const cleanPhone = String(l.phone || '').replace(/[^0-9]/g, '');
+    const cleanEmail = (l.email || '').trim();
+    const safeName = (l.name || '').replace(/'/g, "\\'");
+    const safeProduct = (l.product_name || l.category || 'General Enquiry').replace(/'/g, "\\'");
+    const status = l.status || "NEW";
+
+    let statusBadgeColor = "#facc15";
+    if (status === "CONTACTED") statusBadgeColor = "#38bdf8";
+    else if (status === "FOLLOW-UP") statusBadgeColor = "#c084fc";
+    else if (status === "CONVERTED") statusBadgeColor = "#4ade80";
+    else if (status === "CLOSED") statusBadgeColor = "#9ca3af";
+
+    return `
+      <tr>
+        <td><strong style="color: var(--color-gold); font-size: 0.85rem;">#L-${l.id}</strong></td>
+        <td>
+          <a href="javascript:void(0)" onclick="viewLeadDetails(${l.id})" style="color: #fff; font-weight: 700; text-decoration: underline;" title="View details for ${escapeHtml(l.name)}">
+            ${escapeHtml(l.name)}
+          </a>
+        </td>
+        <td>
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <a href="tel:${cleanPhone}" style="color: var(--color-gold); font-weight: 600;">${l.phone}</a>
+            <button type="button" class="btn-xs btn-outline" onclick="copyTextToClipboard('${cleanPhone}', 'Phone copied!')" title="Copy Phone Number" style="padding: 1px 5px; font-size: 0.68rem;">Copy</button>
+          </div>
+        </td>
+        <td>
+          ${cleanEmail ? `
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <a href="mailto:${cleanEmail}" style="color: rgba(255,255,255,0.85); font-size: 0.82rem;">${escapeHtml(cleanEmail)}</a>
+              <button type="button" class="btn-xs btn-outline" onclick="copyTextToClipboard('${cleanEmail}', 'Email copied!')" title="Copy Email" style="padding: 1px 5px; font-size: 0.68rem;">Copy</button>
+            </div>
+          ` : `<span class="text-muted" style="font-size: 0.8rem;">-</span>`}
+        </td>
+        <td>
+          <div>
+            <strong style="color: #fff; font-size: 0.86rem; display: block;">${escapeHtml(l.product_name || 'General Enquiry')}</strong>
+            <span style="font-size: 0.74rem; color: rgba(255,255,255,0.6);">${escapeHtml(l.category || '')} ${l.price ? '• ' + escapeHtml(l.price) : ''}</span>
+          </div>
+        </td>
+        <td>
+          <span class="badge badge-primary" style="font-size: 0.7rem;">${escapeHtml(l.source || 'Website')}</span>
+        </td>
+        <td style="font-size: 0.75rem; color: var(--color-white-faint); white-space: nowrap;">
+          ${l.created_at || 'Recent'}
+        </td>
+        <td>
+          <select onchange="quickUpdateLeadStatus(${l.id}, this.value)" class="form-control form-control-sm" style="background: #180307; border: 1px solid ${statusBadgeColor}; color: ${statusBadgeColor}; font-weight: 700; font-size: 0.75rem; padding: 4px 6px; border-radius: 4px; cursor: pointer;">
+            <option value="NEW" ${status === "NEW" ? "selected" : ""}>NEW</option>
+            <option value="CONTACTED" ${status === "CONTACTED" ? "selected" : ""}>CONTACTED</option>
+            <option value="FOLLOW-UP" ${status === "FOLLOW-UP" ? "selected" : ""}>FOLLOW-UP</option>
+            <option value="CONVERTED" ${status === "CONVERTED" ? "selected" : ""}>CONVERTED</option>
+            <option value="CLOSED" ${status === "CLOSED" ? "selected" : ""}>CLOSED</option>
+          </select>
+        </td>
+        <td>
+          <div style="display: flex; gap: 4px; align-items: center;">
+            <button class="btn-icon" onclick="viewLeadDetails(${l.id})" title="View Complete Lead Details" style="color: #facc15;">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+            <button class="btn-icon" onclick="openLeadWhatsApp('${cleanPhone}', '${safeName}', '${safeProduct}')" title="Chat on WhatsApp" style="color: #25D366;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.711 2.598 2.664-.699c.971.53 1.83.81 2.802.81 3.181 0 5.767-2.587 5.768-5.766.001-3.182-2.586-5.768-5.774-5.768zm7.391 5.766c-.001 4.075-3.316 7.39-7.391 7.39-1.282 0-2.485-.333-3.535-.916l-4.148 1.088 1.107-4.045c-.682-1.12-1.045-2.417-1.045-3.517 0-4.076 3.315-7.391 7.391-7.391 4.076 0 7.392 3.315 7.392 7.391z"/></svg>
+            </button>
+            <a href="tel:${cleanPhone}" class="btn-icon" title="Call Customer" style="color: var(--color-gold);">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+            </a>
+            <button class="btn-icon btn-icon-danger" onclick="confirmDeleteLead(${l.id}, '${safeName}')" title="Delete Lead">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+            </button>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join("");
+}
+
+function filterLeadsByStatus(status, btn) {
+  currentLeadStatusFilter = status;
+  document.querySelectorAll(".lead-filter-btn").forEach(b => b.classList.remove("active", "btn-gold"));
+  document.querySelectorAll(".lead-filter-btn").forEach(b => b.classList.add("btn-outline"));
+  if (btn) {
+    btn.classList.add("active", "btn-gold");
+    btn.classList.remove("btn-outline");
+  }
+  loadLeads();
+}
+
+function filterLeadsTable() {
+  clearTimeout(leadSearchTimer);
+  leadSearchTimer = setTimeout(() => {
+    loadLeads();
+  }, 250);
+}
+
+async function viewLeadDetails(id) {
+  try {
+    let lead = cachedLeads.find(l => l.id === id);
+    if (!lead) {
+      const res = await fetch(`/api/admin/leads/${id}`);
+      if (res.ok) {
+        const data = await res.json();
+        lead = data.lead;
+      }
+    }
+    if (!lead) {
+      showToast("Lead not found", "danger");
+      return;
+    }
+
+    activeLead = lead;
+    const cleanPhone = String(lead.phone || '').replace(/[^0-9]/g, '');
+
+    document.getElementById("lead-modal-title").textContent = `Lead #L-${lead.id}: ${lead.name}`;
+    const badgeEl = document.getElementById("lead-modal-badge");
+    if (badgeEl) {
+      badgeEl.textContent = lead.status || "NEW";
+      badgeEl.className = `badge ${lead.status === 'NEW' ? 'badge-gold' : (lead.status === 'CONVERTED' ? 'badge-success' : 'badge-primary')}`;
+    }
+
+    document.getElementById("lead-detail-name").textContent = lead.name;
+    const phoneLink = document.getElementById("lead-detail-phone-link");
+    phoneLink.textContent = lead.phone;
+    phoneLink.href = `tel:${cleanPhone}`;
+
+    const emailEl = document.getElementById("lead-detail-email");
+    const copyEmailBtn = document.getElementById("btn-copy-lead-email");
+    if (lead.email) {
+      emailEl.innerHTML = `<a href="mailto:${lead.email}" style="color: #fff; text-decoration: underline;">${lead.email}</a>`;
+      if (copyEmailBtn) copyEmailBtn.style.display = "inline-block";
+    } else {
+      emailEl.textContent = "None provided";
+      if (copyEmailBtn) copyEmailBtn.style.display = "none";
+    }
+
+    document.getElementById("lead-detail-pref-contact").textContent = lead.preferred_contact || "WhatsApp";
+    document.getElementById("lead-detail-product").textContent = lead.product_name || "General Collection Enquiry";
+    document.getElementById("lead-detail-category").textContent = lead.category || "General";
+    document.getElementById("lead-detail-price").textContent = lead.price || "—";
+    document.getElementById("lead-detail-source").textContent = lead.source || "Website Enquiry";
+    document.getElementById("lead-detail-message").textContent = lead.message || "No specific message provided.";
+    document.getElementById("lead-detail-created").textContent = lead.created_at || "Recent";
+
+    const pageUrlLink = document.getElementById("lead-detail-pageurl");
+    const pageUrlBox = document.getElementById("lead-detail-pageurl-box");
+    if (lead.page_url) {
+      pageUrlLink.href = lead.page_url;
+      pageUrlLink.textContent = lead.page_url;
+      if (pageUrlBox) pageUrlBox.style.display = "inline-block";
+    } else if (pageUrlBox) {
+      pageUrlBox.style.display = "none";
+    }
+
+    const statusSelect = document.getElementById("lead-detail-status-select");
+    if (statusSelect) statusSelect.value = lead.status || "NEW";
+
+    const notesInput = document.getElementById("lead-detail-notes-input");
+    if (notesInput) notesInput.value = lead.notes || "";
+
+    const callBtn = document.getElementById("btn-lead-detail-call");
+    if (callBtn) callBtn.href = `tel:${cleanPhone}`;
+
+    const modal = document.getElementById("modal-lead-details");
+    if (modal) modal.classList.add("show");
+  } catch (err) {
+    console.error("Error viewing lead:", err);
+    showToast("Failed to load lead details", "danger");
+  }
+}
+
+function closeLeadDetailsModal() {
+  const modal = document.getElementById("modal-lead-details");
+  if (modal) modal.classList.remove("show");
+  activeLead = null;
+}
+
+async function saveLeadModalChanges() {
+  if (!activeLead) return;
+  const statusSelect = document.getElementById("lead-detail-status-select");
+  const notesInput = document.getElementById("lead-detail-notes-input");
+
+  const newStatus = statusSelect ? statusSelect.value : activeLead.status;
+  const newNotes = notesInput ? notesInput.value.trim() : (activeLead.notes || "");
+
+  try {
+    const res = await fetch(`/api/admin/leads/${activeLead.id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: newStatus, notes: newNotes })
+    });
+    const data = await res.json();
+    if (res.ok && data.success) {
+      showToast("Lead status and notes saved successfully.", "success");
+      closeLeadDetailsModal();
+      await loadLeads();
+      await loadDashboardData();
+    } else {
+      showToast(data.error || "Failed to save lead updates", "danger");
+    }
+  } catch (err) {
+    console.error("Error saving lead:", err);
+    showToast("Network error while saving lead", "danger");
+  }
+}
+
+async function quickUpdateLeadStatus(id, newStatus) {
+  try {
+    const res = await fetch(`/api/admin/leads/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: newStatus })
+    });
+    const data = await res.json();
+    if (res.ok && data.success) {
+      showToast(`Lead #${id} status updated to ${newStatus}.`, "success");
+      const item = cachedLeads.find(l => l.id === id);
+      if (item) item.status = newStatus;
+      await loadDashboardData();
+    } else {
+      showToast(data.error || "Failed to update lead status", "danger");
+      await loadLeads();
+    }
+  } catch (err) {
+    console.error("Error updating lead status:", err);
+    showToast("Error updating lead status", "danger");
+  }
+}
+
+function confirmDeleteLead(id, customerName) {
+  openConfirmModal(
+    "Delete Customer Lead",
+    `Are you sure you want to permanently delete lead #${id} (${customerName})? This action cannot be undone.`,
+    async () => {
+      try {
+        const res = await fetch(`/api/admin/leads/${id}`, { method: "DELETE" });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          showToast(`Lead #${id} deleted successfully.`, "success");
+          await loadLeads();
+          await loadDashboardData();
+        } else {
+          showToast(data.error || "Failed to delete lead", "danger");
+        }
+      } catch (err) {
+        console.error("Error deleting lead:", err);
+        showToast("Error deleting lead", "danger");
+      }
+    },
+    "Delete Lead"
+  );
+}
+
+function openLeadWhatsApp(phone, name, product) {
+  const cleanPhone = String(phone || '').replace(/[^0-9]/g, '');
+  if (!cleanPhone) {
+    showToast("No valid phone number for WhatsApp", "danger");
+    return;
+  }
+  const msg = `Hello ${name || 'Customer'}! Thank you for inquiring about ${product || 'Hiramoti Collection garments'} at our Powai Naka showroom in Satara. How may we assist you with sizes, colors, and availability?`;
+  window.open(`https://wa.me/91${cleanPhone}?text=${encodeURIComponent(msg)}`, "_blank");
+}
+
+function triggerLeadWhatsApp() {
+  if (!activeLead) return;
+  openLeadWhatsApp(activeLead.phone, activeLead.name, activeLead.product_name || activeLead.category);
+}
+
+function copyLeadPhone() {
+  if (!activeLead) return;
+  copyTextToClipboard(activeLead.phone, "Phone number copied to clipboard!");
+}
+
+function copyLeadEmail() {
+  if (!activeLead || !activeLead.email) return;
+  copyTextToClipboard(activeLead.email, "Email address copied to clipboard!");
+}
+
+function copyTextToClipboard(text, successMsg = "Copied to clipboard!") {
+  if (!text) return;
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(() => {
+      showToast(successMsg, "info");
+    }).catch(() => {
+      fallbackCopy(text, successMsg);
+    });
+  } else {
+    fallbackCopy(text, successMsg);
+  }
+}
+
+function fallbackCopy(text, successMsg) {
+  const ta = document.createElement("textarea");
+  ta.value = text;
+  document.body.appendChild(ta);
+  ta.select();
+  try {
+    document.execCommand("copy");
+    showToast(successMsg, "info");
+  } catch (e) {
+    showToast("Copy failed, please copy manually: " + text, "warning");
+  }
+  document.body.removeChild(ta);
 }
 
 // ==========================================================================
